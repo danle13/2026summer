@@ -1,0 +1,1734 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="An interactive feeling wheel, naming prompts, a private check-in ledger, and timed presence practices.">
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img,svg{max-width:100%}</style>
+</head>
+<body>
+<title>The Inner Weather Station</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Karla:ital,wght@0,300..700;1,400..600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+/* ─────────────────────────  TOKENS  ───────────────────────── */
+:root{
+  --ground:#E9EDEC; --panel:#F5F8F7; --sunk:#DFE7E6;
+  --ink:#0F2229; --ink-2:#3D5760; --ink-3:#6D858B;
+  --rule:#C6D2D2; --rule-2:#AABABA;
+  --accent:#0F6B76; --accent-2:#0B4E56; --accent-ink:#FFFFFF; --accent-wash:#D7E7E8;
+  --f1:#CD9A1B; --f2:#8E2F63; --f3:#2E9E76; --f4:#22588F; --f5:#9679D4; --f6:#B02D22;
+  --tint-rest:32%; --tint-core:44%; --tint-hover:53%; --tint-on:72%; --tint-dim:13%;
+  --lift: 0 1px 1px rgba(15,34,41,.05), 0 10px 30px -18px rgba(15,34,41,.35);
+  --dial-glass: radial-gradient(circle at 42% 34%, rgba(255,255,255,.28), rgba(255,255,255,0) 58%);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0C1A20; --panel:#14252C; --sunk:#0A161B;
+    --ink:#E3EDEC; --ink-2:#A9BFC4; --ink-3:#7D959B;
+    --rule:#263B43; --rule-2:#375057;
+    --accent:#5CC2CC; --accent-2:#8FDCE3; --accent-ink:#08181C; --accent-wash:#16333A;
+    --f1:#B68B2E; --f2:#A63A6E; --f3:#33AC74; --f4:#2A6BB4; --f5:#9C82D6; --f6:#DC5B3C;
+    --tint-rest:26%; --tint-core:37%; --tint-hover:47%; --tint-on:66%; --tint-dim:11%;
+    --lift: 0 1px 1px rgba(0,0,0,.4), 0 14px 34px -18px rgba(0,0,0,.7);
+    --dial-glass: radial-gradient(circle at 42% 34%, rgba(160,220,225,.10), rgba(0,0,0,0) 60%);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0C1A20; --panel:#14252C; --sunk:#0A161B;
+  --ink:#E3EDEC; --ink-2:#A9BFC4; --ink-3:#7D959B;
+  --rule:#263B43; --rule-2:#375057;
+  --accent:#5CC2CC; --accent-2:#8FDCE3; --accent-ink:#08181C; --accent-wash:#16333A;
+  --f1:#B68B2E; --f2:#A63A6E; --f3:#33AC74; --f4:#2A6BB4; --f5:#9C82D6; --f6:#DC5B3C;
+  --tint-rest:26%; --tint-core:37%; --tint-hover:47%; --tint-on:66%; --tint-dim:11%;
+  --lift: 0 1px 1px rgba(0,0,0,.4), 0 14px 34px -18px rgba(0,0,0,.7);
+  --dial-glass: radial-gradient(circle at 42% 34%, rgba(160,220,225,.10), rgba(0,0,0,0) 60%);
+}
+
+/* ─────────────────────────  BASE  ───────────────────────── */
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Karla","Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size:17px; line-height:1.62; font-weight:400;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{margin:0; text-wrap:balance; font-weight:400}
+p{margin:0}
+a{color:var(--accent); text-decoration-thickness:1px; text-underline-offset:3px}
+:where(button,a,input,textarea,select,[tabindex]):focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px; border-radius:2px;
+}
+.wrap{max-width:1080px; margin:0 auto; padding:0 24px}
+.measure{max-width:66ch}
+.serif{font-family:"Instrument Serif",Georgia,"Times New Roman",serif; font-weight:400; letter-spacing:.004em}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.num{font-variant-numeric:tabular-nums}
+
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11px; font-weight:500;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3);
+}
+.rule{height:1px; background:var(--rule); border:0; margin:0}
+
+section{padding:76px 0 8px}
+section > .wrap > header{display:flex; flex-direction:column; gap:14px; margin-bottom:34px}
+.sec-title{font-family:"Instrument Serif",Georgia,serif; font-size:clamp(30px,4.4vw,46px); line-height:1.06}
+.sec-lede{color:var(--ink-2); font-size:18px; max-width:62ch}
+
+.card{
+  background:var(--panel); border:1px solid var(--rule); border-radius:3px; padding:24px;
+}
+.stack{display:flex; flex-direction:column}
+.g14{gap:14px} .g10{gap:10px} .g20{gap:20px} .g28{gap:28px} .g8{gap:8px}
+
+/* ─────────────────────────  MASTHEAD  ───────────────────────── */
+.mast{padding:0; border-bottom:1px solid var(--rule); background:var(--panel)}
+.mast-in{display:flex; align-items:baseline; justify-content:space-between; gap:20px; padding:14px 24px; max-width:1080px; margin:0 auto; flex-wrap:wrap}
+.brand{display:flex; align-items:baseline; gap:12px}
+.brand-mark{
+  font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.2em; color:var(--accent);
+  border:1px solid var(--rule-2); padding:3px 6px; border-radius:2px; align-self:center;
+}
+.brand-name{font-family:"Instrument Serif",Georgia,serif; font-size:21px}
+nav.jump{display:flex; gap:2px; flex-wrap:wrap}
+nav.jump a{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-2); text-decoration:none; padding:6px 9px; border-radius:2px;
+}
+nav.jump a:hover{color:var(--ink); background:var(--sunk)}
+
+.hero{padding:64px 0 30px}
+.hero h1{font-family:"Instrument Serif",Georgia,serif; font-size:clamp(42px,7.6vw,80px); line-height:.99; letter-spacing:-.012em}
+.hero h1 em{font-style:italic; color:var(--ink-2)}
+.hero p{font-size:20px; color:var(--ink-2); max-width:58ch; margin-top:22px}
+.disclaim{
+  margin-top:30px; border-left:2px solid var(--rule-2); padding:2px 0 2px 16px;
+  font-size:14.5px; color:var(--ink-3); max-width:64ch;
+}
+
+/* ─────────────────────────  DIAL  ───────────────────────── */
+.dial-grid{display:grid; grid-template-columns:minmax(0,1.06fr) minmax(0,1fr); gap:42px; align-items:start}
+@media (max-width:940px){ .dial-grid{grid-template-columns:1fr; gap:28px} }
+
+.dial-shell{position:relative; background:var(--panel); border:1px solid var(--rule); border-radius:50%; padding:10px; box-shadow:var(--lift)}
+.dial-shell::after{content:""; position:absolute; inset:0; border-radius:50%; background:var(--dial-glass); pointer-events:none}
+svg.dial{display:block; width:100%; height:auto; overflow:visible}
+
+.wseg{
+  fill:color-mix(in oklab, var(--c) var(--tint-rest), var(--panel));
+  stroke:var(--panel); stroke-width:2; transition:fill .16s ease;
+}
+.wedge[data-kind="core"] .wseg{fill:color-mix(in oklab, var(--c) var(--tint-core), var(--panel))}
+.wedge{cursor:pointer}
+.wedge:hover .wseg{fill:color-mix(in oklab, var(--c) var(--tint-hover), var(--panel))}
+.wedge[data-on="1"] .wseg{fill:color-mix(in oklab, var(--c) var(--tint-on), var(--panel)); stroke:var(--c); stroke-width:1.5}
+.wedge[data-dim="1"] .wseg{fill:color-mix(in oklab, var(--c) var(--tint-dim), var(--panel))}
+.wedge[data-dim="1"] .wlabel{opacity:.5}
+.wedge:focus{outline:none}
+.wedge:focus-visible .wseg{stroke:var(--ink); stroke-width:2.5}
+.wlabel{
+  font-family:"IBM Plex Mono",monospace; fill:var(--ink); pointer-events:none;
+  dominant-baseline:middle; transition:opacity .16s ease;
+}
+.wlabel-core{font-size:12.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase}
+.wlabel-mid{font-size:11.5px; font-weight:400; letter-spacing:.005em}
+.wlabel-nub{font-size:9.5px; font-weight:400; letter-spacing:.005em; fill:var(--ink-2)}
+.tick{stroke:var(--rule-2); stroke-width:1}
+.tick-major{stroke:var(--ink-3); stroke-width:1.6}
+.hub-plate{fill:var(--sunk); stroke:var(--rule); stroke-width:1}
+.hub-word{font-family:"Instrument Serif",Georgia,serif; fill:var(--ink); text-anchor:middle; dominant-baseline:middle}
+.hub-sub{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.15em; text-transform:uppercase; fill:var(--ink-3); text-anchor:middle; dominant-baseline:middle}
+
+/* readout */
+.readout{position:sticky; top:16px; display:flex; flex-direction:column; gap:0}
+.readout-head{border-bottom:1px solid var(--rule); padding-bottom:16px; margin-bottom:18px}
+.readout-name{font-family:"Instrument Serif",Georgia,serif; font-size:clamp(32px,5vw,44px); line-height:1.02; margin-top:6px}
+.fam-chip{display:inline-flex; align-items:center; gap:8px; font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-2)}
+.dot{width:10px; height:10px; border-radius:50%; background:var(--c,var(--accent)); flex:0 0 auto}
+.field{display:grid; grid-template-columns:96px 1fr; gap:14px; padding:12px 0; border-bottom:1px dashed var(--rule)}
+.field:last-of-type{border-bottom:0}
+.field dt{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); padding-top:5px}
+.field dd{margin:0; color:var(--ink)}
+.field dd em{font-style:italic; color:var(--ink-2)}
+@media (max-width:520px){ .field{grid-template-columns:1fr; gap:4px} }
+.nubs{display:flex; flex-wrap:wrap; gap:6px; margin-top:4px}
+
+/* buttons */
+.btn{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase;
+  background:transparent; color:var(--ink); border:1px solid var(--rule-2); border-radius:2px;
+  padding:9px 14px; cursor:pointer; transition:background .15s, border-color .15s, color .15s;
+}
+.btn:hover{background:var(--sunk); border-color:var(--ink-3)}
+.btn-primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent-2); border-color:var(--accent-2); color:var(--accent-ink)}
+.btn-quiet{border-color:var(--rule); color:var(--ink-2); font-size:11px; padding:7px 11px}
+.btn-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:20px}
+.chip{
+  font-family:"IBM Plex Mono",monospace; font-size:12px; background:var(--sunk); color:var(--ink);
+  border:1px solid var(--rule); border-radius:2px; padding:5px 10px; cursor:pointer;
+}
+.chip:hover{border-color:var(--ink-3)}
+.chip[aria-pressed="true"]{background:var(--accent-wash); border-color:var(--accent); color:var(--ink)}
+
+details.listview{margin-top:26px; border-top:1px solid var(--rule); padding-top:16px}
+details.listview summary{cursor:pointer; font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-2)}
+details.listview summary:hover{color:var(--ink)}
+.vocab{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:22px; margin-top:22px}
+.vocab h4{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; display:flex; align-items:center; gap:8px; margin-bottom:8px}
+.vocab ul{list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:5px}
+.vocab button{
+  font-family:"Karla",sans-serif; font-size:14px; background:none; border:0; border-bottom:1px solid var(--rule);
+  color:var(--ink-2); padding:1px 0; cursor:pointer;
+}
+.vocab button:hover{color:var(--ink); border-color:var(--ink)}
+
+/* ─────────────────────────  LADDER  ───────────────────────── */
+.rungs{display:flex; flex-direction:column; gap:0; counter-reset:rung}
+.rung{display:grid; grid-template-columns:56px 1fr; gap:20px; padding:30px 0; border-top:1px solid var(--rule)}
+.rung:last-child{border-bottom:1px solid var(--rule)}
+.rung-n{font-family:"Instrument Serif",Georgia,serif; font-size:34px; color:var(--rule-2); line-height:1}
+.rung h3{font-family:"Instrument Serif",Georgia,serif; font-size:26px; line-height:1.15}
+.rung .why{font-size:15px; color:var(--ink-2); max-width:62ch}
+.rung .ask{font-size:18px; color:var(--ink); max-width:56ch}
+.rung .ask strong{font-weight:600}
+@media (max-width:640px){ .rung{grid-template-columns:1fr; gap:12px} .rung-n{font-size:24px} }
+
+.quad{display:grid; grid-template-columns:auto 1fr 1fr; grid-template-rows:auto auto auto; gap:8px; max-width:520px; margin-top:6px}
+.quad .qlab{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); display:flex; align-items:center; justify-content:center; text-align:center; padding:0 4px}
+.quad button{
+  text-align:left; background:var(--panel); border:1px solid var(--rule); border-radius:3px; padding:14px;
+  cursor:pointer; color:var(--ink); font-family:inherit; min-height:92px; transition:border-color .15s, background .15s;
+}
+.quad button:hover{border-color:var(--ink-3)}
+.quad button[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-wash)}
+.quad .qt{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); display:block; margin-bottom:6px}
+.quad .qb{font-size:15px; line-height:1.35; display:block}
+.quad .qb b{font-weight:600}
+
+.imposters{margin-top:8px}
+.imposters table{width:100%; border-collapse:collapse; font-size:15px}
+.imposters th{text-align:left; font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); font-weight:500; padding:0 14px 8px 0; border-bottom:1px solid var(--rule)}
+.imposters td{padding:10px 14px 10px 0; border-bottom:1px solid var(--rule); vertical-align:top; color:var(--ink-2)}
+.imposters td:first-child{color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:13.5px; white-space:nowrap}
+.tblwrap{overflow-x:auto}
+
+/* ─────────────────────────  LEDGER  ───────────────────────── */
+.log-grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); gap:40px; align-items:start}
+@media (max-width:940px){ .log-grid{grid-template-columns:1fr; gap:30px} }
+
+.lab{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); display:block; margin-bottom:7px}
+input[type="text"], textarea, select{
+  width:100%; font-family:inherit; font-size:16px; color:var(--ink); background:var(--ground);
+  border:1px solid var(--rule-2); border-radius:2px; padding:10px 12px;
+}
+textarea{resize:vertical; min-height:64px; line-height:1.5}
+input::placeholder, textarea::placeholder{color:var(--ink-3)}
+
+.dialer{display:flex; gap:6px}
+.dialer button{
+  flex:1; font-family:"IBM Plex Mono",monospace; font-size:13px; padding:10px 0; background:var(--ground);
+  border:1px solid var(--rule-2); border-radius:2px; color:var(--ink-2); cursor:pointer;
+}
+.dialer button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.dial-scale{display:flex; justify-content:space-between; font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin-top:6px}
+
+.tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:3px; overflow:hidden}
+.tile{background:var(--panel); padding:14px 16px}
+.tile .tv{font-family:"IBM Plex Mono",monospace; font-size:26px; font-weight:500; font-variant-numeric:tabular-nums; line-height:1.1; letter-spacing:-.01em}
+.tile .tl{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); margin-top:5px; line-height:1.35}
+
+.spark-card{margin-top:1px}
+.spark-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:2px}
+svg.spark{display:block; width:100%; height:auto; overflow:visible; touch-action:none}
+.spk-line{fill:none; stroke:var(--accent); stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+.spk-area{fill:var(--accent); opacity:.11}
+.spk-grid{stroke:var(--rule); stroke-width:1}
+.spk-end{fill:var(--accent); stroke:var(--panel); stroke-width:2}
+.spk-hit{fill:transparent}
+.spk-cross{stroke:var(--ink-3); stroke-width:1; stroke-dasharray:2 3}
+.spk-ax{font-family:"IBM Plex Mono",monospace; font-size:9.5px; fill:var(--ink-3); letter-spacing:.06em}
+.tip{
+  position:absolute; pointer-events:none; background:var(--ink); color:var(--ground);
+  font-family:"IBM Plex Mono",monospace; font-size:11px; padding:6px 8px; border-radius:2px;
+  white-space:nowrap; transform:translate(-50%,-135%); opacity:0; transition:opacity .1s; z-index:5;
+}
+.relpos{position:relative}
+
+.dist{display:flex; flex-direction:column; gap:2px; margin-top:16px}
+.distrow{display:grid; grid-template-columns:88px 1fr 30px; gap:10px; align-items:center; font-size:13.5px}
+.distrow .dn{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.06em; color:var(--ink-2); display:flex; align-items:center; gap:7px}
+.bar{display:block; height:9px; border-radius:1px; background:var(--c); min-width:2px}
+.bartrack{display:block; background:var(--sunk); border-radius:1px; overflow:hidden}
+.distrow .dv{font-family:"IBM Plex Mono",monospace; font-size:12px; font-variant-numeric:tabular-nums; color:var(--ink-2); text-align:right}
+
+.ledger{margin-top:24px; border-top:1px solid var(--rule)}
+.entry{display:grid; grid-template-columns:74px 1fr auto; gap:14px; padding:13px 0; border-bottom:1px solid var(--rule); align-items:start}
+.entry .ets{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3); font-variant-numeric:tabular-nums; padding-top:3px; line-height:1.35}
+.entry .ew{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:1px}
+.entry .ewn{font-size:17px}
+.entry .eint{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3); letter-spacing:.08em}
+.entry .enote{display:block; font-size:14.5px; color:var(--ink-2); margin-top:3px}
+.entry .del{background:none; border:0; color:var(--ink-3); cursor:pointer; font-family:"IBM Plex Mono",monospace; font-size:13px; padding:2px 4px; line-height:1}
+.entry .del:hover{color:var(--f6)}
+.empty{padding:26px 0; color:var(--ink-3); font-size:15px}
+
+/* ─────────────────────────  PRACTICE  ───────────────────────── */
+.prac-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px}
+.prac{display:flex; flex-direction:column; gap:14px}
+.prac h3{font-family:"Instrument Serif",Georgia,serif; font-size:24px; line-height:1.12}
+.prac .src{font-size:13.5px; color:var(--ink-3); line-height:1.55}
+.prac .how{font-size:15px; color:var(--ink-2)}
+.pacer-wrap{display:flex; flex-direction:column; align-items:center; gap:10px; padding:10px 0; margin-top:auto}
+svg.pacer{width:154px; height:154px; overflow:visible}
+.pc-track{fill:none; stroke:var(--rule); stroke-width:1}
+.pc-fill{fill:var(--accent); opacity:.14}
+.pc-ring{fill:none; stroke:var(--accent); stroke-width:2}
+.pc-ticks{stroke:var(--rule-2); stroke-width:1}
+.pc-readout{display:flex; flex-direction:column; align-items:center; gap:1px; margin:0}
+.pc-clock{font-family:"IBM Plex Mono",monospace; font-size:23px; font-weight:500; font-variant-numeric:tabular-nums; letter-spacing:-.015em; line-height:1.1}
+.pc-lab{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.prac-foot{display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding-top:6px}
+.retcount{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3); letter-spacing:.06em}
+
+.pill{
+  display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.12em;
+  text-transform:uppercase; padding:3px 7px; border-radius:2px; border:1px solid var(--rule-2); color:var(--ink-2);
+}
+
+/* ─────────────────────────  TEACH  ───────────────────────── */
+.moves{display:grid; grid-template-columns:repeat(auto-fit,minmax(238px,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:3px; overflow:hidden}
+.move{background:var(--panel); padding:22px}
+.move .mk{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:9px}
+.move h4{font-family:"Instrument Serif",Georgia,serif; font-size:22px; line-height:1.14; margin-bottom:8px}
+.move p{font-size:15px; color:var(--ink-2)}
+
+.scripts{display:flex; flex-direction:column; gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:3px; overflow:hidden}
+.script{background:var(--panel); padding:22px 24px}
+.script .who{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); margin-bottom:14px}
+.line{display:grid; grid-template-columns:76px 1fr; gap:14px; padding:5px 0; max-width:86ch}
+.line .sp{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3); padding-top:4px; letter-spacing:.04em}
+.line .sl{font-size:16.5px}
+.line .sl em{font-style:italic; color:var(--ink-3)}
+.line-you .sl{color:var(--ink)}
+.gloss{font-size:14.5px; color:var(--ink-2); border-left:2px solid var(--rule-2); padding-left:14px; margin-top:16px; max-width:66ch}
+@media (max-width:560px){ .line{grid-template-columns:1fr; gap:2px} .line .sp{padding-top:8px} }
+
+.donts{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:28px 40px}
+@media (max-width:700px){ .donts{grid-template-columns:1fr} }
+.dont{border-top:2px solid var(--ink); padding-top:14px}
+.dont .bad{font-size:17px; font-style:italic; color:var(--ink)}
+.dont .why{font-size:15px; color:var(--ink-2); margin-top:7px}
+.dont .instead{font-size:15px; margin-top:10px; color:var(--ink-2)}
+.dont .instead b{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); display:block; margin-bottom:3px; font-weight:500}
+
+/* ─────────────────────────  EVIDENCE  ───────────────────────── */
+.tiers{display:flex; flex-direction:column; gap:34px}
+.tier h3{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; display:flex; align-items:center; gap:10px; padding-bottom:10px; border-bottom:1px solid var(--rule)}
+.tier h3 .grade{width:8px; height:8px; border-radius:50%}
+.tier ul{list-style:none; margin:14px 0 0; padding:0; display:flex; flex-direction:column; gap:16px}
+.tier li{display:grid; grid-template-columns:1fr; gap:3px; max-width:78ch}
+.tier .claim{font-size:16.5px}
+.tier .cite{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3); line-height:1.55}
+
+footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel)}
+.foot-in{max-width:1080px; margin:0 auto; padding:34px 24px 44px; display:flex; flex-direction:column; gap:14px}
+.foot-in p{font-size:14.5px; color:var(--ink-3); max-width:70ch}
+.crisis{border:1px solid var(--f6); border-radius:3px; padding:16px 18px; max-width:70ch}
+.crisis .h{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--f6); margin-bottom:7px}
+.crisis p{font-size:15px; color:var(--ink-2)}
+
+.toast{
+  position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(14px);
+  background:var(--ink); color:var(--ground); font-family:"IBM Plex Mono",monospace; font-size:12px;
+  padding:10px 16px; border-radius:2px; opacity:0; pointer-events:none; transition:opacity .18s, transform .18s; z-index:50;
+}
+.toast[data-on="1"]{opacity:1; transform:translateX(-50%) translateY(0)}
+
+@media (max-width:560px){
+  body{font-size:16px}
+  .wrap{padding:0 18px}
+  .eyebrow{font-size:10px; letter-spacing:.1em}
+  .hero{padding:40px 0 22px}
+  .hero p{font-size:18px}
+  .disclaim{font-size:14px}
+  section{padding:54px 0 4px}
+  .card{padding:18px}
+  nav.jump{gap:0}
+  nav.jump a{font-size:10px; padding:6px 7px}
+  .sec-lede{font-size:17px}
+  .mast-in{padding:12px 18px}
+  .foot-in{padding:28px 18px 38px}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important}
+}
+</style>
+
+<header class="mast">
+  <div class="mast-in">
+    <div class="brand">
+      <span class="brand-mark">STN 01</span>
+      <span class="brand-name">The Inner Weather Station</span>
+    </div>
+    <nav class="jump" aria-label="Sections">
+      <a href="#dial">The dial</a>
+      <a href="#name">Naming</a>
+      <a href="#log">Ledger</a>
+      <a href="#presence">Presence</a>
+      <a href="#teach">Teaching it</a>
+      <a href="#evidence">Evidence</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<div class="hero"><div class="wrap">
+  <p class="eyebrow" style="margin-bottom:20px">A working instrument for noticing, naming, and staying</p>
+  <h1>You are not the weather.<br><em>You are the station that reads it.</em></h1>
+  <p>Feelings arrive like weather — fast, physical, uninvited, and passing. The skill is not controlling
+  them. It is reading them accurately enough that you get to choose what happens next. This page is
+  built to be used, not read: a dial for finding the precise word, prompts for when the word won't
+  come, a ledger for watching your own patterns, and practices for the part nobody can hand you — being
+  here while it happens.</p>
+  <p class="disclaim">This is psychoeducation and self-monitoring, not therapy, diagnosis, or treatment.
+  It draws on published research, cited at the bottom with an honest note about how strong each piece of
+  evidence actually is. If something here opens more than you can hold, that is information worth taking
+  to a human clinician.</p>
+</div></div>
+
+<!-- ══════════════════ THE DIAL ══════════════════ -->
+<section id="dial"><div class="wrap">
+  <header>
+    <p class="eyebrow">01 — The instrument</p>
+    <h2 class="sec-title">The dial</h2>
+    <p class="sec-lede">Six families in the hub ring, ordered the way affect actually varies — pleasant to
+    unpleasant, high energy to low. Tap inward to outward: family, then feeling, then the precise word.
+    Every ring you move outward is a gain in <em>granularity</em>, and granularity is the part that
+    predicts how well people regulate.</p>
+  </header>
+
+  <div class="dial-grid">
+    <div>
+      <div class="dial-shell"><svg class="dial" id="dialSvg" viewBox="0 0 760 760" role="group" aria-label="Interactive feeling dial"></svg></div>
+      <p class="eyebrow" style="margin-top:16px; text-align:center; line-height:1.7">
+        Inner ring: family · Middle: feeling · Outer: the precise word<br>
+        <span style="text-transform:none; letter-spacing:.02em">Reading clockwise from the top — pleasant &amp; energized → pleasant &amp; quiet → unpleasant &amp; quiet → unpleasant &amp; energized</span>
+      </p>
+    </div>
+
+    <div class="readout" id="readout">
+      <div class="readout-head">
+        <span class="fam-chip" id="roChip"><span class="dot" style="--c:var(--accent)"></span><span id="roChipTxt">No selection</span></span>
+        <h3 class="readout-name" id="roName">Start anywhere</h3>
+      </div>
+      <div id="roBody"></div>
+      <div class="btn-row" id="roActions"></div>
+
+      <details class="listview">
+        <summary>Browse the whole vocabulary as a list</summary>
+        <div class="vocab" id="vocabList"></div>
+      </details>
+    </div>
+  </div>
+</div></section>
+
+<!-- ══════════════════ NAMING LADDER ══════════════════ -->
+<section id="name"><div class="wrap">
+  <header>
+    <p class="eyebrow">02 — When the word won't come</p>
+    <h2 class="sec-title">Five rungs to a name</h2>
+    <p class="sec-lede">Most people reach for the label first and land on <em>fine</em>, <em>stressed</em>,
+    or <em>bad</em>. Working from the body upward gets you somewhere truer. Take these in order; each rung
+    narrows the next.</p>
+  </header>
+
+  <div class="rungs">
+
+    <div class="rung">
+      <div class="rung-n">1</div>
+      <div class="stack g14">
+        <h3>Find it in your body before you name it</h3>
+        <p class="ask">Close your eyes for ten seconds. <strong>Where is this?</strong> Not what it means —
+        where. Temperature, weight, movement, edges. Does it have a size?</p>
+        <div>
+          <span class="lab">Tap whatever fits — this fills your ledger entry</span>
+          <div class="nubs" id="bodyChips"></div>
+        </div>
+        <p class="why">Interoception — the sense of your own internal state — is where an emotion is
+        actually detected. People who read body signals more accurately identify their emotions more
+        precisely. Starting at the label skips the data.</p>
+      </div>
+    </div>
+
+    <div class="rung">
+      <div class="rung-n">2</div>
+      <div class="stack g14">
+        <h3>Set two dials: energy and tone</h3>
+        <p class="ask">Before the exact word, get the neighbourhood. <strong>Is your body wound up or run
+        down? Does this feel pleasant or unpleasant?</strong></p>
+        <div class="quad" id="quad" role="group" aria-label="Energy and tone grid"></div>
+        <p class="why">Nearly all emotion sorts along these two axes — Russell's circumplex. Two questions
+        with four answers gets you from seventy-two words down to about a dozen, and it is the one step
+        that works even when you are too flooded to think.</p>
+      </div>
+    </div>
+
+    <div class="rung">
+      <div class="rung-n">3</div>
+      <div class="stack g14">
+        <h3>Take the family the dials point to</h3>
+        <p class="ask">Go to the dial and open the highlighted families. <strong>Which one makes your
+        shoulders drop half an inch when you read it?</strong> That drop is the signal.</p>
+        <div class="btn-row" style="margin-top:0"><button class="btn" id="toDial">Open the dial with these families →</button></div>
+        <p class="why">You are looking for recognition, not deduction. Gendlin called the thing you are
+        checking against a <em>felt sense</em>: the body confirms or declines a word faster than reasoning
+        does, and the confirmation feels like release.</p>
+      </div>
+    </div>
+
+    <div class="rung">
+      <div class="rung-n">4</div>
+      <div class="stack g14">
+        <h3>Go one word more precise than feels necessary</h3>
+        <p class="ask">Not <em>sad</em> but <em>homesick</em>. Not <em>anxious</em> but <em>dreading</em>.
+        <strong>If two words both fit, pick the one that makes you exhale.</strong> If none fit, take the
+        closest and add <em>“…and something else I can't name yet.”</em></p>
+        <p class="why">Putting a feeling into words measurably dampens the amygdala response and recruits
+        prefrontal regions — the mechanism behind “name it to tame it.” The effect is real but modest,
+        and it works better when you are naming to be accurate than when you are naming to feel better.</p>
+      </div>
+    </div>
+
+    <div class="rung">
+      <div class="rung-n">5</div>
+      <div class="stack g14">
+        <h3>Ask what it is asking for</h3>
+        <p class="ask">Every feeling is a request. <strong>What does this one want — contact, rest,
+        information, a boundary, a decision, or just to be witnessed?</strong> Then pick one move:
+        change the situation, change where your attention sits, change how you're reading it, or change
+        what your body is doing.</p>
+        <p class="why">Those four are Gross's regulation families. The order matters: acting earlier in the
+        chain (choosing or shaping the situation) generally costs less than wrestling the feeling after it
+        has fully arrived — and reappraising works, while pushing the feeling down does not.</p>
+        <div class="btn-row" style="margin-top:6px"><button class="btn btn-primary" id="toLog">Log what I found →</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card imposters" style="margin-top:44px">
+    <p class="eyebrow" style="margin-bottom:12px">Check for imposters</p>
+    <p class="measure" style="margin-bottom:20px; color:var(--ink-2)">Some words feel like feelings but
+    are actually verdicts about what someone else did. They point outward, invite argument, and hide the
+    thing underneath. Trade them down for the feeling plus the need — the move at the heart of
+    Rosenberg's nonviolent communication.</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>Sounds like a feeling</th><th>What it actually is</th><th>Try instead</th></tr></thead>
+      <tbody>
+        <tr><td>abandoned</td><td>A claim about what someone did</td><td>“Lonely and scared — I need to know you're coming back.”</td></tr>
+        <tr><td>ignored</td><td>An interpretation of attention</td><td>“Hurt and unseen — I need you to look up when I talk.”</td></tr>
+        <tr><td>disrespected</td><td>A judgement of another's conduct</td><td>“Angry — that crossed something that matters to me.”</td></tr>
+        <tr><td>manipulated</td><td>An accusation of motive</td><td>“Wary and resentful — I need to understand what you're asking for.”</td></tr>
+        <tr><td>unappreciated</td><td>A tally of what you didn't get</td><td>“Weary and invisible — I need my work named out loud.”</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div></section>
+
+<!-- ══════════════════ LEDGER ══════════════════ -->
+<section id="log"><div class="wrap">
+  <header>
+    <p class="eyebrow">03 — The record</p>
+    <h2 class="sec-title">The ledger</h2>
+    <p class="sec-lede">A weather station is only useful because it keeps a log. One entry takes twenty
+    seconds; the value shows up around entry fifteen, when patterns you'd swear were random turn out to
+    have a shape. Watch the <em>vocabulary</em> figure especially — the count of distinct words you've
+    used is a direct measure of the granularity you're building.</p>
+  </header>
+
+  <div class="log-grid">
+    <div class="card stack g20">
+      <p class="eyebrow">New check-in</p>
+      <div>
+        <label class="lab" for="wordIn">The feeling — one precise word</label>
+        <input type="text" id="wordIn" placeholder="homesick, thwarted, buoyed…" autocomplete="off">
+      </div>
+      <div>
+        <label class="lab" for="famIn">Family</label>
+        <select id="famIn"></select>
+      </div>
+      <div>
+        <span class="lab">Intensity</span>
+        <div class="dialer" id="intDial" role="group" aria-label="Intensity, 1 to 5"></div>
+        <div class="dial-scale"><span>1 — a trace</span><span>5 — all of me</span></div>
+      </div>
+      <div>
+        <label class="lab" for="bodyIn">In the body</label>
+        <input type="text" id="bodyIn" placeholder="tight chest, hot face…" autocomplete="off">
+      </div>
+      <div>
+        <label class="lab" for="noteIn">What was happening — one line</label>
+        <textarea id="noteIn" placeholder="Third email about the same thing."></textarea>
+      </div>
+      <div class="btn-row" style="margin-top:0">
+        <button class="btn btn-primary" id="saveEntry">Record it</button>
+        <button class="btn btn-quiet" id="exportBtn">Copy ledger out</button>
+        <button class="btn btn-quiet" id="clearBtn">Erase all</button>
+      </div>
+      <p class="why" style="font-size:13.5px; color:var(--ink-3); line-height:1.55">
+        Your ledger is stored only in this browser, on this device. It is never sent anywhere, and nobody
+        else who opens this page can see it — including whoever you share the page with. Clearing your
+        browser data erases it, so copy it out if it matters to you.</p>
+      <div id="exportOut" hidden>
+        <label class="lab" for="exportTxt">Your ledger as CSV — paste it into a spreadsheet</label>
+        <textarea id="exportTxt" readonly rows="5" class="mono" style="font-size:12px"></textarea>
+      </div>
+    </div>
+
+    <div>
+      <div class="tiles" id="tiles"></div>
+      <p class="eyebrow" style="margin-top:10px; text-transform:none; letter-spacing:.02em; line-height:1.6">
+        <span style="text-transform:uppercase; letter-spacing:.14em">Distinct words</span> is your
+        granularity score. Watch it climb — that number, not the pleasant share, is the skill.</p>
+
+      <div class="card spark-card">
+        <div class="spark-head">
+          <p class="eyebrow">Intensity, last 20 check-ins</p>
+          <span class="eyebrow" id="sparkNote" style="letter-spacing:.06em; text-transform:none"></span>
+        </div>
+        <div class="relpos" id="sparkWrap">
+          <svg class="spark" id="spark" viewBox="0 0 520 130" role="img" aria-label="Line chart of intensity across recent check-ins"></svg>
+          <div class="tip" id="sparkTip"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:1px">
+        <p class="eyebrow">Where your check-ins land</p>
+        <div class="dist" id="dist"></div>
+      </div>
+
+      <div class="ledger" id="ledger" aria-live="polite"></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ══════════════════ PRESENCE ══════════════════ -->
+<section id="presence"><div class="wrap">
+  <header>
+    <p class="eyebrow">04 — The practice</p>
+    <h2 class="sec-title">How to be present</h2>
+    <p class="sec-lede">Presence has an operational definition, which is what makes it trainable:
+    <em>paying attention on purpose, in the present moment, without judging what you find</em> — Kabat-Zinn's
+    formulation, and the basis of every mindfulness protocol that has been tested. Three parts, and the
+    third is the one people skip. Judging what you find turns noticing into a performance review.</p>
+  </header>
+
+  <div class="card measure" style="max-width:74ch; margin-bottom:26px">
+    <p class="eyebrow" style="margin-bottom:12px">The one reframe that makes it work</p>
+    <p style="color:var(--ink-2)">Presence is not an unbroken beam of attention. It is the act of
+    <em>returning</em>. Your mind will leave — that isn't failure, that's the equipment. Each time you
+    notice you've gone and come back, that is one repetition of exactly the muscle you're building. A
+    ten-minute sit with forty returns is a better session than one with four, because you noticed
+    thirty-six more times. Count returns, not stillness.</p>
+  </div>
+
+  <div class="prac-grid">
+
+    <div class="card prac">
+      <div><span class="pill">5 minutes</span></div>
+      <h3>Cyclic sighing</h3>
+      <p class="how">Two inhales through the nose — a long one, then a short top-up — then a slow,
+      complete exhale through the mouth. Emphasis on the exhale. Follow the ring.</p>
+      <div class="pacer-wrap">
+        <svg class="pacer" id="pacerA" viewBox="0 0 160 160" aria-hidden="true"></svg>
+        <p class="pc-readout" aria-live="off"><span class="pc-clock num" id="clkA">5:00</span><span class="pc-lab" id="phA">ready</span></p>
+      </div>
+      <div class="prac-foot">
+        <button class="btn btn-primary" data-timer="A">Begin</button>
+        <button class="btn btn-quiet" data-reset="A">Reset</button>
+      </div>
+      <p class="src">Balban et al., <em>Cell Reports Medicine</em>, 2023 — five minutes daily for a month
+      improved mood and lowered resting respiratory rate more than mindfulness meditation in the same
+      trial. The strongest short-practice evidence on this page.</p>
+    </div>
+
+    <div class="card prac">
+      <div><span class="pill">3 minutes</span></div>
+      <h3>The breathing space</h3>
+      <p class="how">Three sixty-second stages, in this order. <b>Wide:</b> what is here right now —
+      thought, feeling, sensation? Name it. <b>Narrow:</b> all attention to the breath at one point.
+      <b>Wide again:</b> the whole body, breath included, held together.</p>
+      <div class="pacer-wrap">
+        <svg class="pacer" id="pacerB" viewBox="0 0 160 160" aria-hidden="true"></svg>
+        <p class="pc-readout" aria-live="off"><span class="pc-clock num" id="clkB">3:00</span><span class="pc-lab" id="phB">ready</span></p>
+      </div>
+      <div class="prac-foot">
+        <button class="btn btn-primary" data-timer="B">Begin</button>
+        <button class="btn btn-quiet" data-reset="B">Reset</button>
+      </div>
+      <p class="src">The three-minute breathing space, from mindfulness-based cognitive therapy (Segal,
+      Williams &amp; Teasdale). MBCT roughly halves relapse risk in recurrent depression — one of the
+      better-evidenced psychological interventions there is.</p>
+    </div>
+
+    <div class="card prac">
+      <div><span class="pill">10 minutes</span></div>
+      <h3>Anchor and return</h3>
+      <p class="how">Pick one anchor — breath at the nostrils, feet on the floor, sound in the room. Rest
+      there. When you notice you've wandered, press the button and come back. The press <em>is</em> the
+      practice.</p>
+      <div class="pacer-wrap">
+        <svg class="pacer" id="pacerC" viewBox="0 0 160 160" aria-hidden="true"></svg>
+        <p class="pc-readout" aria-live="off"><span class="pc-clock num" id="clkC">10:00</span><span class="pc-lab" id="phC">ready</span></p>
+      </div>
+      <div class="prac-foot">
+        <button class="btn btn-primary" data-timer="C">Begin</button>
+        <button class="btn" id="retBtn">I came back</button>
+        <button class="btn btn-quiet" data-reset="C">Reset</button>
+        <span class="retcount" id="retCount">0 returns</span>
+      </div>
+      <p class="src">Focused-attention meditation. Meta-analyses find moderate benefit for anxiety,
+      depression and pain, and weaker or unclear evidence for most other claims (Goyal et al., <em>JAMA
+      Internal Medicine</em>, 2014). Useful, not magic.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:26px; max-width:74ch">
+    <p class="eyebrow" style="margin-bottom:12px">And when the feeling is too big to sit with</p>
+    <p style="color:var(--ink-2)">Presence practice is for weather you can stand in. When you're flooded,
+    the order changes: settle the body first, name second, decide third. Never negotiate, reply, or
+    strategize at peak activation — the part of you that does that isn't online. Slow, extended exhales
+    for two minutes; feet on the floor; something cold in your hands. Then come back to the dial. And be
+    kind about the flooding itself: self-compassion — treating your own difficulty the way you'd treat a
+    friend's — is one of the more consistent predictors of recovering well, and self-criticism reliably
+    makes it worse (Neff; MacBeth &amp; Gumley, 2012).</p>
+  </div>
+</div></section>
+
+<!-- ══════════════════ TEACHING ══════════════════ -->
+<section id="teach"><div class="wrap">
+  <header>
+    <p class="eyebrow">05 — Passing it on</p>
+    <h2 class="sec-title">Teaching the gift</h2>
+    <p class="sec-lede">Here is the hard part, said plainly: presence is caught, not taught. People —
+    children especially — read your nervous system before they hear your words, and they calm down by
+    borrowing regulation from someone who has it. Which means the first move in teaching this is never a
+    lesson. It's arriving settled.</p>
+  </header>
+
+  <div class="moves" style="margin-bottom:34px">
+    <div class="move">
+      <p class="mk">Move one</p>
+      <h4>Regulate yourself first</h4>
+      <p>Before you say anything, take one slow exhale and drop your shoulders. Co-regulation is
+      physiological: a settled adult is the intervention. An adult performing calm while braced
+      underneath gets read as danger, because the body is the honest channel.</p>
+    </div>
+    <div class="move">
+      <p class="mk">Move two</p>
+      <h4>Name, don't fix</h4>
+      <p>Offer a guess with a question mark on the end — “that sounds lonely, is that close?” — and let
+      them correct you. Being corrected is the win. A guess invites; a diagnosis closes. Naming *for*
+      someone teaches them to outsource the reading you're trying to build.</p>
+    </div>
+    <div class="move">
+      <p class="mk">Move three</p>
+      <h4>Leave the silence</h4>
+      <p>Count three full seconds after they stop. The real sentence usually lives in second four.
+      High-quality listening — undivided attention, no rush to advise — measurably lowers a speaker's
+      defensiveness and helps them think in more complexity about their own situation.</p>
+    </div>
+    <div class="move">
+      <p class="mk">Move four</p>
+      <h4>Ask “what else?” twice</h4>
+      <p>Most people give the acceptable feeling first and the true one third. Two rounds of “what else
+      is in there?” costs you fifteen seconds and gets you past the presentable answer.</p>
+    </div>
+  </div>
+
+  <div class="scripts" style="margin-bottom:34px">
+
+    <div class="script">
+      <p class="who">With a young child · six years old, crying, won't say why</p>
+      <div class="line line-you"><span class="sp">You</span><span class="sl">Come sit. I'm not going anywhere. <em>(Sit down. Match their height. Say nothing for five seconds.)</em></span></div>
+      <div class="line"><span class="sp">Child</span><span class="sl"><em>(still crying)</em></span></div>
+      <div class="line line-you"><span class="sp">You</span><span class="sl">Something feels really big right now. Big feelings are allowed here.</span></div>
+      <div class="line line-you"><span class="sp">You</span><span class="sl">Where do you feel it? Point to it. Is it in your tummy or your chest or your throat?</span></div>
+      <div class="line"><span class="sp">Child</span><span class="sl">Here. <em>(chest)</em></span></div>
+      <div class="line line-you"><span class="sp">You</span><span class="sl">Chest. Is it heavy like a rock, or fast like a bird?</span></div>
+      <div class="line"><span class="sp">Child</span><span class="sl">Heavy.</span></div>
+      <div class="line line-you"><span class="sp">You</span><span class="sl">Heavy in the chest. That's usually sad. Does sad sound right, or is it a different one?</span></div>
+      <p class="gloss">Body before words, because a six-year-old can point long before they can label.
+      Two concrete choices instead of an open question. And the offered word ends in a real question —
+      they get to say no. Every round of this builds the vocabulary they'll use at sixteen.</p>
+    </div>
+
+    <div class="script">
+      <p class="who">With a teenager · one-word answers, door mostly closed</p>
+      <div class="line line-you"><span class="sp">You</span><span class="sl">You don't have to talk. I'm going to sit here a minute. <em>(Sit. Do not look directly at them. Say nothing.)</em></span></div>
+      <div class="line"><span class="sp">Teen</span><span class="sl">I'm fine.</span></div>
+      <div class="line line-you"><span class="sp">You</span><span class="sl">Okay. <em>(Three seconds.)</em> Fine's a fine answer. It's also usually a lid.</span></div>
+      <div class="line"><span class="sp">Teen</span><span class="sl">It's just school.</span></div>
+      <div class="line line-you"><span class="sp">You</span><span class="sl">Is it more the wound-up kind of bad, or the flattened kind?</span></div>
+      <div class="line"><span class="sp">Teen</span><span class="sl">…Flattened.</span></div>
+      <div class="line line-you"><span class="sp">You</span><span class="sl">Flattened. Is there something else under it?</span></div>
+      <div class="line"><span class="sp">Teen</span><span class="sl">I don't know. Kind of like nobody would notice if I didn't show up.</span></div>
+      <div class="line line-you"><span class="sp">You</span><span class="sl">That sounds lonely. I'm not going to try to talk you out of it. Thank you for telling me the real one.</span></div>
+      <p class="gloss">The wound-up-or-flattened question is rung two of the ladder — arousal before label,
+      which a teenager will answer when “how are you feeling?” gets nothing. Note what you don't do at
+      the end: no reassurance, no counter-evidence, no fixing. Contradicting the feeling is what teaches
+      them not to bring you the next one. Say what you'll do later; right now, just stay.</p>
+    </div>
+
+    <div class="script">
+      <p class="who">With an adult · a colleague, mid-spiral, at your door</p>
+      <div class="line"><span class="sp">Them</span><span class="sl">Sorry — do you have a second? This whole thing is falling apart and I don't even know where to start.</span></div>
+      <div class="line line-you"><span class="sp">You</span><span class="sl">I've got ten minutes and I'm not doing anything else with them. <em>(Close the laptop. Visibly.)</em></span></div>
+      <div class="line"><span class="sp">Them</span><span class="sl"><em>(seven minutes of it)</em></span></div>
+      <div class="line line-you"><span class="sp">You</span><span class="sl">What else is in there?</span></div>
+      <div class="line"><span class="sp">Them</span><span class="sl">Honestly? I think I'm embarrassed. I should have caught this in June.</span></div>
+      <div class="line line-you"><span class="sp">You</span><span class="sl">There it is. That's a heavier thing to carry than the deadline is. Do you want help thinking, or do you want a witness right now? Either's fine.</span></div>
+      <p class="gloss">Closing the laptop does more work than any sentence — attention has to be visible to
+      count. “What else is in there?” is what got you from <em>overwhelmed</em> to <em>ashamed</em>, which
+      is the feeling actually driving the spiral. And the last question is the most respectful one you can
+      ask an adult: most unwanted advice is given to people who came for company.</p>
+    </div>
+  </div>
+
+  <h3 class="sec-title" style="font-size:28px; margin-bottom:8px">Four things that undo it</h3>
+  <p class="sec-lede" style="margin-bottom:26px">All four are well-meant. All four teach the person that
+  their feeling was a problem for you.</p>
+  <div class="donts" style="margin-bottom:38px">
+    <div class="dont">
+      <p class="bad">“At least it's not…”</p>
+      <p class="why">Comparison is a hand over the mouth. It says the size of your feeling is the thing
+      we're negotiating.</p>
+      <p class="instead"><b>Instead</b>“That's a lot. Tell me more about it.”</p>
+    </div>
+    <div class="dont">
+      <p class="bad">“Don't be sad — look at all this.”</p>
+      <p class="why">Counter-evidence is an argument, and nobody has ever been argued out of a feeling.
+      They just stop reporting it.</p>
+      <p class="instead"><b>Instead</b>“Sad makes sense here. I'm not going anywhere.”</p>
+    </div>
+    <div class="dont">
+      <p class="bad">“You're just tired.”</p>
+      <p class="why">Naming <em>for</em> them, with no question mark. Even if you're right, you've taken
+      the reading they needed to do themselves.</p>
+      <p class="instead"><b>Instead</b>“Could some of this be tiredness? Or is that not it?”</p>
+    </div>
+    <div class="dont">
+      <p class="bad">“Everyone share a feeling. Marcus, you're up.”</p>
+      <p class="why">Required disclosure isn't emotional learning, it's compliance — and it teaches the
+      quiet ones to produce an acceptable feeling on demand.</p>
+      <p class="instead"><b>Instead</b>Offer the wheel, model one yourself, allow “pass.”</p>
+    </div>
+  </div>
+
+  <div class="card" style="max-width:76ch">
+    <p class="eyebrow" style="margin-bottom:12px">For a classroom, a group, or a family table</p>
+    <p style="color:var(--ink-2); margin-bottom:16px">Ninety seconds, at the same moment every day. The
+    consistency is doing most of the work; the content matters less than the fact that it happens whether
+    or not anything is wrong. Brackett's framing is the one to keep in your head — the goal is to raise
+    <em>emotion scientists</em>, curious about what a feeling is and what it's pointing at, rather than
+    <em>emotion judges</em>, sorting feelings into allowed and not allowed.</p>
+    <div class="stack g10" style="color:var(--ink-2); font-size:16px">
+      <p><b style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase">0:00</b> &nbsp;Everyone finds it in the body. Silent. No words yet.</p>
+      <p><b style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase">0:20</b> &nbsp;Two dials, on fingers: energy high or low, tone pleasant or not.</p>
+      <p><b style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase">0:40</b> &nbsp;One word each, around the room. “Pass” is a complete answer. You go first, and you go honest — a leader who only ever reports <em>good</em> has taught the whole room the real rule.</p>
+      <p><b style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase">1:10</b> &nbsp;No commentary on anyone's word. Not even praise — praising a “good share” makes it a performance. Just: “thank you.” Then move on.</p>
+    </div>
+    <p class="src" style="margin-top:18px">One caution worth stating: school-based social-emotional
+    programmes show real average benefits on emotional skills and behaviour, but effects are small to
+    moderate and depend heavily on whether adults actually run them as designed. The ritual works because
+    it is boringly consistent, not because it is inspiring.</p>
+  </div>
+</div></section>
+
+<!-- ══════════════════ EVIDENCE ══════════════════ -->
+<section id="evidence"><div class="wrap">
+  <header>
+    <p class="eyebrow">06 — Showing the work</p>
+    <h2 class="sec-title">What the evidence actually says</h2>
+    <p class="sec-lede">Sorted by how much weight each idea can bear. Nothing in the third tier is
+    useless — clinical practice runs ahead of its evidence base constantly — but you should know which
+    tier you're standing on, especially before teaching it to someone else.</p>
+  </header>
+
+  <div class="tiers">
+    <div class="tier">
+      <h3><span class="grade" style="background:var(--f3)"></span>Well supported</h3>
+      <ul>
+        <li><p class="claim">Putting a feeling into words dampens the brain's threat response.</p>
+          <p class="cite">Lieberman et al. (2007), <em>Psychological Science</em> — affect labeling reduced
+          amygdala activity and increased right ventrolateral prefrontal activity. Reviewed in Torre &amp;
+          Lieberman (2018), <em>Emotion Review</em>, which frames it as implicit regulation and notes the
+          effects are modest.</p></li>
+        <li><p class="claim">People who describe their feelings more precisely regulate them better.</p>
+          <p class="cite">Emotional granularity / differentiation: Barrett et al. (2001); Kashdan, Barrett
+          &amp; McKnight (2015), <em>Current Directions in Psychological Science</em>. Low granularity is
+          associated with heavier drinking, more aggression after provocation, and poorer outcomes across
+          several clinical populations.</p></li>
+        <li><p class="claim">Reappraising a situation works; pushing the feeling down doesn't.</p>
+          <p class="cite">Gross's process model (1998; 2015, <em>Psychological Inquiry</em>). Expressive
+          suppression reduces outward expression while leaving or raising physiological arousal and
+          impairing memory; reappraisal reduces the experience itself.</p></li>
+        <li><p class="claim">Mindfulness-based cognitive therapy substantially cuts depressive relapse.</p>
+          <p class="cite">Kuyken et al. (2016), <em>JAMA Psychiatry</em> — individual-patient-data
+          meta-analysis. Broader mindfulness claims are weaker: Goyal et al. (2014), <em>JAMA Internal
+          Medicine</em>, found moderate evidence for anxiety, depression and pain and low or insufficient
+          evidence for most else.</p></li>
+        <li><p class="claim">Brief structured breathwork with a long exhale improves mood.</p>
+          <p class="cite">Balban et al. (2023), <em>Cell Reports Medicine</em> — five minutes daily of
+          cyclic sighing over one month beat mindfulness meditation on positive affect and respiratory
+          rate. Randomised, but a single trial with a modest sample.</p></li>
+        <li><p class="claim">Self-compassion predicts better mental health; self-criticism predicts worse.</p>
+          <p class="cite">MacBeth &amp; Gumley (2012), <em>Clinical Psychology Review</em> — large inverse
+          association with depression, anxiety and stress across 20 samples. Neff &amp; Germer's Mindful
+          Self-Compassion programme has randomised support.</p></li>
+      </ul>
+    </div>
+
+    <div class="tier">
+      <h3><span class="grade" style="background:var(--f1)"></span>Promising, with real caveats</h3>
+      <ul>
+        <li><p class="claim">Emotion sorts along two axes: pleasantness and activation.</p>
+          <p class="cite">Russell (1980), <em>Journal of Personality and Social Psychology</em>. Robust as
+          a description of how people <em>report</em> feelings; it is a map of experience, not proof of
+          two underlying mechanisms.</p></li>
+        <li><p class="claim">Reading your own body's signals supports naming feelings accurately.</p>
+          <p class="cite">Interoception research — Critchley &amp; Garfinkel; Mehling's MAIA scale.
+          Directionally well supported, but measurement is contested and heartbeat-detection tasks
+          correlate only loosely with everyday emotional skill.</p></li>
+        <li><p class="claim">Being listened to well makes people less defensive and more nuanced.</p>
+          <p class="cite">Itzchakov &amp; Kluger's experimental work on high-quality listening; Rogers
+          (1957) on empathic understanding and unconditional positive regard as therapeutic conditions.
+          Mostly short-term laboratory and field effects.</p></li>
+        <li><p class="claim">Writing about difficult experience has measurable benefits.</p>
+          <p class="cite">Pennebaker's expressive writing paradigm — typically 15–20 minutes over three or
+          four days. Meta-analytic effects are small and inconsistent across outcomes; helpful for some
+          people, not a general prescription.</p></li>
+        <li><p class="claim">Distancing from yourself — third person, or “you” — reduces reactivity.</p>
+          <p class="cite">Kross &amp; Ayduk on self-distanced reflection and distanced self-talk. Replicated
+          across several paradigms, with smaller effects in field settings.</p></li>
+        <li><p class="claim">Teaching emotional skills in schools improves skills and behaviour.</p>
+          <p class="cite">Durlak et al. (2011) and Taylor et al. (2017) meta-analyses of social-emotional
+          learning; Brackett's RULER approach and <em>Permission to Feel</em> (2019). Small-to-moderate
+          effects, highly dependent on implementation fidelity.</p></li>
+      </ul>
+    </div>
+
+    <div class="tier">
+      <h3><span class="grade" style="background:var(--f4)"></span>Practice wisdom — thin or contested evidence</h3>
+      <ul>
+        <li><p class="claim">The feeling wheel itself.</p>
+          <p class="cite">Willcox (1982), <em>Transactional Analysis Journal</em> — the original, with six
+          families. A clinically useful vocabulary scaffold, not a validated instrument or a map of
+          discrete brain systems. Which family a word belongs to is a convention, and constructionist
+          accounts (Barrett) argue emotion categories are built rather than found.</p></li>
+        <li><p class="claim">Body-mapping of specific emotions.</p>
+          <p class="cite">Nummenmaa et al. (2014) found consistent self-reported bodily topographies for
+          emotions, but there is no reliable one-to-one signature. Treat the body notes here as prompts
+          for your own noticing, not as a lookup table.</p></li>
+        <li><p class="claim">Grounding scripts and four-step frameworks (5-4-3-2-1, RAIN, felt-sense focusing).</p>
+          <p class="cite">Widely used, widely helpful, barely tested in isolation. Gendlin's Focusing has
+          a small supportive literature; RAIN and sensory grounding are clinician-developed heuristics.
+          Use them; don't cite them as evidence.</p></li>
+        <li><p class="claim">Polyvagal theory as an explanation of why any of this works.</p>
+          <p class="cite">Deliberately left out of this page. The vocabulary is everywhere in wellness
+          writing, and its core physiological claims have been substantively challenged (Grossman, 2023,
+          <em>Biological Psychology</em>). The practices stand on their own trial evidence without it.</p></li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+</main>
+
+<footer>
+  <div class="foot-in">
+    <div class="crisis">
+      <p class="h">If you are in danger right now</p>
+      <p>Self-monitoring is not the right tool for a crisis. In the US, call or text <strong>988</strong>
+      (Suicide &amp; Crisis Lifeline) or text <strong>HOME</strong> to <strong>741741</strong>. Elsewhere,
+      findahelpline.com lists services by country. If you are worried about someone else, ask them
+      directly and plainly — asking does not plant the idea.</p>
+    </div>
+    <p>Built as an educational instrument. It does not diagnose, treat, or replace care from a licensed
+    professional, and it does not know anything about you — your ledger stays in your own browser.
+    Persistent low mood, anxiety that shrinks your life, or feelings you cannot get underneath are all
+    reasonable things to bring to a therapist. Wanting to understand yourself better is not a symptom.</p>
+    <p class="eyebrow">Station 01 · Read the weather · Keep the log · Stay at the window</p>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+/* ══════════════════════════ DATA ══════════════════════════
+   Six families ordered by Russell's circumplex, clockwise from
+   the top: pleasant+energised → pleasant+quiet → unpleasant+quiet
+   → unpleasant+energised. Families follow Willcox (1982).       */
+
+const FAMILIES = [
+  { key:"joyful", name:"Joyful", v:"pleasant", a:"high", tone:"Pleasant, energised, open — the world feels worth moving toward.",
+    mids:[
+      { name:"Content", def:"Enough. Nothing is missing right now — different from excited, which reaches forward for something not yet here.",
+        body:"Shoulders dropped, slow easy breath, a warm settled chest.",
+        need:"To be noticed before it passes. Contentment is quiet and almost never gets logged.",
+        ask:"What is enough right now that you'd normally walk straight past?",
+        nubs:["satisfied","at ease","fulfilled"] },
+      { name:"Playful", def:"Energy with no goal attached. The opposite of performing — and the first thing to disappear when you're being evaluated.",
+        body:"Light across the face, wanting to move, quick shallow breath.",
+        need:"Permission, and usually a partner. Play dies under assessment.",
+        ask:"What would you do right now if you knew nobody was grading it?",
+        nubs:["amused","buoyant","silly"] },
+      { name:"Excited", def:"Pleasant activation aimed at something coming. Physiologically almost identical to anxiety — the difference is what you expect to happen.",
+        body:"Fast heart, buzzing hands, genuinely hard to sit still.",
+        need:"Somewhere to put the charge, and someone to tell.",
+        ask:"What are you moving toward — and is any part of this actually nervous?",
+        nubs:["eager","charged","thrilled"] },
+      { name:"Hopeful", def:"Holding that a better outcome is possible without knowing it's coming. Quietly vulnerable, because hope is the thing that can be disappointed.",
+        body:"Chest opens, eyes lift, a slight forward lean.",
+        need:"One concrete next step, so hope doesn't have to live on abstraction.",
+        ask:"What are you hoping for, and what would the very first sign of it be?",
+        nubs:["buoyed","expectant","heartened"] } ] },
+
+  { key:"powerful", name:"Powerful", v:"pleasant", a:"high", tone:"Pleasant, high agency — you are the one acting, not the one being acted on.",
+    mids:[
+      { name:"Confident", def:"Trusting your capacity for this specific thing. Not a global claim about your worth, which is why it survives a bad day.",
+        body:"Weight even on both feet, steady voice, loose jaw.",
+        need:"To be spent. Confidence with nowhere to go turns into restlessness.",
+        ask:"What, specifically, are you actually competent at here?",
+        nubs:["assured","capable","steady"] },
+      { name:"Proud", def:"A standard of your own being met. Distinct from being praised — you can be praised and feel nothing, or unwitnessed and feel this.",
+        body:"Chest lifts, spine lengthens, an involuntary small smile.",
+        need:"To be witnessed by one person whose judgement you'd actually trust.",
+        ask:"What did this cost you that nobody else can see?",
+        nubs:["gratified","worthy","glowing"] },
+      { name:"Respected", def:"Registering that you matter to someone. This one depends on other people — which is exactly why losing it lands so hard.",
+        body:"Warmth in the face, open throat, easier eye contact.",
+        need:"To be said out loud. Naming it back is what makes it repeat.",
+        ask:"Who gave you this, and do they know they did?",
+        nubs:["valued","seen","honoured"] },
+      { name:"Purposeful", def:"Energy organised around something that matters. The most durable form of feeling powerful, because it doesn't need an audience.",
+        body:"Narrow focus, forward pressure, time going missing.",
+        need:"Protection from interruption.",
+        ask:"What is the one thing this is in service of?",
+        nubs:["driven","focused","resolute"] } ] },
+
+  { key:"peaceful", name:"Peaceful", v:"pleasant", a:"low", tone:"Pleasant, low energy — nothing needs to change right now.",
+    mids:[
+      { name:"Serene", def:"Calm that isn't the absence of feeling. It's feeling with nothing urgent attached to it.",
+        body:"Long exhale, soft belly, attention wide rather than pointed.",
+        need:"Not to be spent immediately. Protect whatever produced it.",
+        ask:"What did you do — or stop doing — that let this happen?",
+        nubs:["calm","still","unhurried"] },
+      { name:"Loving", def:"Warmth moving outward toward someone specific. Directional, which is what separates it from contentment.",
+        body:"Chest warm and full, wanting to move closer, soft throat.",
+        need:"Expression. Unspoken love reliably turns into ache.",
+        ask:"Who is this pointed at, and what stops you saying it to them?",
+        nubs:["tender","warm","fond"] },
+      { name:"Thankful", def:"Registering that something good came from outside you. Requires admitting dependence, which is why it can feel unexpectedly heavy.",
+        body:"Chest full in a good way, throat tight, sometimes tears.",
+        need:"To reach the actual person, not just to be felt privately.",
+        ask:"Who or what gave you something you didn't earn?",
+        nubs:["grateful","moved","humbled"] },
+      { name:"Trusting", def:"Lowered guard. Your nervous system's verdict that this situation is safe — a judgement, and occasionally a wrong one.",
+        body:"Shoulders down from the ears, slower scanning, open posture.",
+        need:"To be worth it. Trust is data; check it against behaviour.",
+        ask:"What told your body this was safe?",
+        nubs:["safe","at rest","open"] } ] },
+
+  { key:"sad", name:"Sad", v:"unpleasant", a:"low", tone:"Unpleasant, low energy — something is gone, or out of reach.",
+    mids:[
+      { name:"Lonely", def:"The gap between the connection you have and the connection you need. Not the same as being alone — you can have this in a full room.",
+        body:"Hollow chest, heavy limbs, a pull to curl inward.",
+        need:"Contact. One real exchange does more than a crowd.",
+        ask:"Who would you want to walk through the door right now?",
+        nubs:["isolated","unseen","homesick"] },
+      { name:"Grieving", def:"The bill for having loved something. Not a problem to be solved — it's love with nowhere left to land.",
+        body:"Waves rather than a state: chest and throat tighten, then release. Unpredictable timing.",
+        need:"Time and company. Not repair, and not perspective.",
+        ask:"What are you missing, and what did it give you that you no longer have?",
+        nubs:["bereft","aching","wistful"] },
+      { name:"Ashamed", def:"“I am bad,” where guilt says “I did something bad.” Guilt moves you toward repair; shame moves you toward hiding. The difference is everything.",
+        body:"Heat in the face and neck, gaze dropping, wanting to be physically smaller.",
+        need:"To be seen anyway. Shame does not survive being met without flinching.",
+        ask:"Is this about something you did, or about who you think you are? What's the guilt version of the sentence?",
+        nubs:["exposed","small","mortified"] },
+      { name:"Weary", def:"Depletion, not laziness. Often what depression feels like from the inside before it has a name.",
+        body:"Everything heavy, food and interest gone flat, speech slow.",
+        need:"Real rest — and if this has run for weeks, a professional set of eyes.",
+        ask:"When did you last feel rested? What has been drawing on you since then?",
+        nubs:["depleted","flat","numb"] } ] },
+
+  { key:"scared", name:"Scared", v:"unpleasant", a:"high", tone:"Unpleasant, high energy — something might hurt, and you're braced for it.",
+    mids:[
+      { name:"Anxious", def:"Fear without a target: the body prepared for a threat the mind hasn't specified yet.",
+        body:"Tight chest, high shallow breathing, restless hands, eyes scanning.",
+        need:"Specificity. A named fear is smaller than an unnamed one.",
+        ask:"Finish the sentence: “I'm afraid that ______ will happen, and then ______.”",
+        nubs:["restless","keyed up","dreading"] },
+      { name:"Insecure", def:"Fear pointed at your own adequacy rather than at the situation. The threat is being found out.",
+        body:"Tight throat, shoulders drawn up, silently rehearsing what to say.",
+        need:"Evidence, not reassurance. Reassurance wears off in an hour.",
+        ask:"What are you afraid they'll find out? Now — is it actually true?",
+        nubs:["unsure","shaky","inadequate"] },
+      { name:"Overwhelmed", def:"Demand past capacity, so nothing gets processed at all. The freeze is a full inbox, not a failure of character.",
+        body:"Buzzing head, tight chest, can't finish a thought, urge to leave the room.",
+        need:"Reduction. One item, written down, out of your head.",
+        ask:"If you could only do one of these in the next hour, which one?",
+        nubs:["flooded","scattered","frozen"] },
+      { name:"Threatened", def:"Fear with a source you can point at. Sharper and considerably more useful than free-floating anxiety.",
+        body:"Jaw set, muscles loaded, narrowed vision, very awake.",
+        need:"Safety first, decisions second. Don't strategise while flooded.",
+        ask:"What is the specific threat, and what would genuinely make you safer in the next ten minutes?",
+        nubs:["alarmed","wary","braced"] } ] },
+
+  { key:"mad", name:"Mad", v:"unpleasant", a:"high", tone:"Unpleasant, high energy — a boundary or a value has been crossed.",
+    mids:[
+      { name:"Frustrated", def:"Blocked movement toward something you want. Anger's most common and least dangerous form.",
+        body:"Tension in hands and jaw, sharp exhale, a wish to push against something.",
+        need:"A different route — or to grieve the route that just closed.",
+        ask:"What are you trying to do that isn't working? Is the block outside you or inside you?",
+        nubs:["thwarted","impatient","stuck"] },
+      { name:"Hurt", def:"Anger's softer origin, and almost always underneath it. Find the hurt and the anger gets far more accurate.",
+        body:"Ache behind the sternum, tight throat, tears close to the surface.",
+        need:"Acknowledgement — from whoever caused it, or failing that, from you.",
+        ask:"What did you hope for from them that you didn't get?",
+        nubs:["wounded","betrayed","raw"] },
+      { name:"Irritated", def:"Low-grade anger, usually about accumulation rather than the current trigger. The last straw is rarely the problem.",
+        body:"Prickly skin, short breath, no tolerance for noise or being touched.",
+        need:"To find the real load. Also, unglamorously: food, water, sleep.",
+        ask:"What is this the tenth of? And when did you last eat or sleep properly?",
+        nubs:["annoyed","edgy","prickly"] },
+      { name:"Furious", def:"Full activation in defence of something that matters. Excellent information about your values, and terrible at choosing actions.",
+        body:"Heat, hard heartbeat, sound loud in the ears, hands wanting to move.",
+        need:"Discharge without damage now; the decision later.",
+        ask:"Which value of yours got violated? And what will you regret if you act in the next ten minutes?",
+        nubs:["enraged","seething","hot"] } ] },
+];
+
+const BODY_CHIPS = ["tight chest","hollow stomach","thick throat","clenched jaw","high shoulders",
+  "buzzing hands","hot face","heavy limbs","shallow breath","can't sit still","behind the eyes","can't locate it"];
+
+const QUADS = [
+  { a:"high", v:"pleasant",   t:"Wound up · pleasant",   b:"<b>Joyful</b> or <b>Powerful</b>", fams:[0,1] },
+  { a:"high", v:"unpleasant", t:"Wound up · unpleasant", b:"<b>Scared</b> or <b>Mad</b>",      fams:[4,5] },
+  { a:"low",  v:"pleasant",   t:"Run down · pleasant",   b:"<b>Peaceful</b>",                  fams:[2] },
+  { a:"low",  v:"unpleasant", t:"Run down · unpleasant", b:"<b>Sad</b>",                       fams:[3] },
+];
+
+/* ══════════════════════════ HELPERS ══════════════════════════ */
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const SVGNS = "http://www.w3.org/2000/svg";
+const el = (n,a={},kids=[])=>{ const e=document.createElementNS(SVGNS,n);
+  for(const k in a) e.setAttribute(k,a[k]); kids.forEach(c=>e.appendChild(c)); return e; };
+const rad = d => d*Math.PI/180;
+const famVar = i => `var(--f${i+1})`;
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let toastT;
+function toast(msg){
+  const t=$("#toast"); t.textContent=msg; t.dataset.on="1";
+  clearTimeout(toastT); toastT=setTimeout(()=>t.dataset.on="0",2600);
+}
+
+/* ══════════════════════════ THE DIAL ══════════════════════════ */
+const C=380, HUB=96, R1=[104,190], R2=[196,282], R3=[287,358], TICK=[364,374], PAD=0.7;
+
+function sector(r0,r1,a0,a1){
+  const pt=(r,a)=>[ (C+r*Math.cos(rad(a))).toFixed(2), (C+r*Math.sin(rad(a))).toFixed(2) ];
+  const [x0,y0]=pt(r1,a0), [x1,y1]=pt(r1,a1), [x2,y2]=pt(r0,a1), [x3,y3]=pt(r0,a0);
+  const laf = (a1-a0) > 180 ? 1 : 0;
+  return `M${x0} ${y0}A${r1} ${r1} 0 ${laf} 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${laf} 0 ${x3} ${y3}Z`;
+}
+
+/** Radial label that always reads right-side-up. */
+function radialLabel(text, cls, rIn, midA, inset=8){
+  const flip = midA > 90 && midA < 270;
+  const r = rIn + inset;
+  const g = el("g",{transform:`translate(${C} ${C}) rotate(${midA})`});
+  if(flip){
+    const inner = el("g",{transform:"rotate(180)"});
+    const t = el("text",{class:`wlabel ${cls}`, x:-r, y:0, "text-anchor":"end"});
+    t.textContent = text; inner.appendChild(t); g.appendChild(inner);
+  } else {
+    const t = el("text",{class:`wlabel ${cls}`, x:r, y:0, "text-anchor":"start"});
+    t.textContent = text; g.appendChild(t);
+  }
+  return g;
+}
+
+const svg = $("#dialSvg");
+let sel = { fi:null, mi:null, ni:null };   // current selection
+
+function buildDial(){
+  svg.textContent = "";
+
+  /* engraved rim */
+  const rim = el("g",{"aria-hidden":"true"});
+  for(let k=0;k<72;k++){
+    const a = -90 + k*5, major = k%12===0;
+    const r0 = major ? TICK[0]-4 : TICK[0], r1 = TICK[1];
+    rim.appendChild(el("line",{ class: major?"tick tick-major":"tick",
+      x1:(C+r0*Math.cos(rad(a))).toFixed(2), y1:(C+r0*Math.sin(rad(a))).toFixed(2),
+      x2:(C+r1*Math.cos(rad(a))).toFixed(2), y2:(C+r1*Math.sin(rad(a))).toFixed(2) }));
+  }
+  svg.appendChild(rim);
+
+  /* rings */
+  const gRings = el("g");
+  FAMILIES.forEach((F,fi)=>{
+    const fa0 = -90 + fi*60, fa1 = fa0 + 60;
+
+    /* — core wedge — */
+    const wCore = el("g",{ class:"wedge", "data-kind":"core", "data-fi":fi, tabindex:"0",
+      role:"button", "aria-label":`${F.name} — feeling family`, style:`--c:${famVar(fi)}` });
+    wCore.appendChild(el("path",{class:"wseg", d:sector(R1[0],R1[1],fa0+PAD,fa1-PAD)}));
+      const cr=(R1[0]+R1[1])/2, ca=rad(fa0+30);
+    const ct=el("text",{class:"wlabel wlabel-core",
+      x:(C+cr*Math.cos(ca)).toFixed(1), y:(C+cr*Math.sin(ca)).toFixed(1), "text-anchor":"middle"});
+    ct.textContent=F.name.toUpperCase(); wCore.appendChild(ct);
+    gRings.appendChild(wCore);
+
+    /* — mid wedges — */
+    F.mids.forEach((M,mi)=>{
+      const ma0 = fa0 + mi*15, ma1 = ma0 + 15;
+      const w = el("g",{ class:"wedge", "data-kind":"mid", "data-fi":fi, "data-mi":mi, tabindex:"0",
+        role:"button", "aria-label":`${M.name} — a ${F.name.toLowerCase()} feeling`, style:`--c:${famVar(fi)}` });
+      w.appendChild(el("path",{class:"wseg", d:sector(R2[0],R2[1],ma0+PAD,ma1-PAD)}));
+      w.appendChild(radialLabel(M.name,"wlabel-mid",R2[0],ma0+7.5,8));
+      gRings.appendChild(w);
+    });
+  });
+  svg.appendChild(gRings);
+
+  /* — nuance ring: guide circles so the empty slot reads as waiting — */
+  const guide=el("g",{"aria-hidden":"true"});
+  [R3[0],R3[1]].forEach(r=>guide.appendChild(
+    el("circle",{cx:C, cy:C, r, fill:"none", stroke:"var(--rule)", "stroke-width":"1"})));
+  svg.appendChild(guide);
+  svg.appendChild(el("g",{id:"nubRing"}));
+
+  /* — hub readout — */
+  const hub = el("g",{id:"hub","aria-hidden":"true"});
+  hub.appendChild(el("circle",{class:"hub-plate", cx:C, cy:C, r:HUB}));
+  hub.appendChild(el("circle",{class:"hub-plate", cx:C, cy:C, r:HUB-8, style:"fill:none"}));
+  const w1 = el("text",{id:"hubWord", class:"hub-word", x:C, y:C+2, "font-size":"34"});
+  const w2 = el("text",{id:"hubSub",  class:"hub-sub",  x:C, y:C+34});
+  const w0 = el("text",{id:"hubTop",  class:"hub-sub",  x:C, y:C-40});
+  hub.append(w0,w1,w2); svg.appendChild(hub);
+
+  paintDial();
+}
+
+function hubText(top,word,sub){
+  const t=$("#hubTop"), w=$("#hubWord"), s=$("#hubSub");
+  t.textContent=top; s.textContent=sub;
+  const len=word.length;
+  w.setAttribute("font-size", len>13 ? 22 : len>10 ? 27 : len>7 ? 32 : 38);
+  /* wrap two words onto two lines when long */
+  w.textContent = word;
+}
+
+function paintDial(){
+  /* Dimming is reserved for an explicit narrowing (rung two). Dimming five of
+     six families just because one is selected bleaches the whole instrument. */
+  const narrowed = highlightFams.length > 0;
+  $$(".wedge",svg).forEach(w=>{
+    const fi=+w.dataset.fi, kind=w.dataset.kind;
+    const mi=w.dataset.mi!==undefined?+w.dataset.mi:null;
+    const on = (kind==="core" && sel.fi===fi && sel.mi===null) ||
+               (kind==="mid"  && sel.fi===fi && sel.mi===mi);
+    w.dataset.on  = on ? "1":"0";
+    w.dataset.dim = (narrowed && !highlightFams.includes(fi)) ? "1":"0";
+  });
+  drawNubRing();
+}
+
+function drawNubRing(){
+  const g=$("#nubRing"); g.textContent="";
+  if(sel.fi===null) return;
+  /* Fill the whole family's outer arc, not just three slivers — twelve words
+     read as a ring segment, three read as stray tags. The selected feeling's
+     words stay lit; its siblings go quiet but remain reachable. */
+  const F=FAMILIES[sel.fi], fa0 = -90 + sel.fi*60;
+  F.mids.forEach((M,mi)=>{
+    M.nubs.forEach((word,ni)=>{
+      const a0 = fa0 + mi*15 + ni*5;
+      const quiet = sel.mi!==null && sel.mi!==mi;
+      const w = el("g",{ class:"wedge", "data-kind":"nub",
+        "data-fi":sel.fi, "data-mi":mi, "data-ni":ni, tabindex:"0", role:"button",
+        "aria-label":`${word} — a precise word for ${M.name.toLowerCase()}`,
+        style:`--c:${famVar(sel.fi)}`,
+        "data-on": (sel.mi===mi && sel.ni===ni) ? "1":"0",
+        "data-dim": quiet ? "1":"0" });
+      w.appendChild(el("path",{class:"wseg", d:sector(R3[0],R3[1],a0+0.35,a0+4.65)}));
+      w.appendChild(radialLabel(word,"wlabel-nub",R3[0],a0+2.5,6));
+      g.appendChild(w);
+    });
+  });
+}
+
+/* ── selection ── */
+let highlightFams = [];
+
+function select(fi,mi,ni){
+  highlightFams = [];
+  sel = { fi, mi:(mi??null), ni:(ni??null) };
+  paintDial(); renderReadout();
+}
+
+function onWedge(e){
+  const w = e.target.closest(".wedge"); if(!w) return;
+  const fi=+w.dataset.fi;
+  if(w.dataset.kind==="core") select(fi,null,null);
+  else if(w.dataset.kind==="mid") select(fi,+w.dataset.mi,null);
+  else select(fi,+w.dataset.mi,+w.dataset.ni);
+}
+svg.addEventListener("click",onWedge);
+svg.addEventListener("keydown",e=>{
+  if(e.key==="Enter"||e.key===" "){ e.preventDefault(); onWedge(e); }
+});
+
+/* ── readout panel ── */
+function renderReadout(){
+  const chip=$("#roChip"), chipT=$("#roChipTxt"), name=$("#roName"),
+        body=$("#roBody"), acts=$("#roActions");
+
+  if(sel.fi===null){
+    chip.style.setProperty("--c","var(--accent)"); chipT.textContent="No selection";
+    name.textContent="Start anywhere";
+    body.innerHTML = `<p style="color:var(--ink-2)">Tap a family in the inner ring — or, if you already
+      know roughly where you are, jump straight to the middle ring. There is no wrong entry point; the
+      dial is a vocabulary, not a diagnostic.</p>
+      <p style="color:var(--ink-3); font-size:15px; margin-top:14px">Can't tell where to start? Work the
+      <a href="#name">five rungs</a> instead — they begin in the body, which is easier to read than a list
+      of words when you're already in it.</p>`;
+    acts.innerHTML="";
+    hubText("","Read it","six families");
+    return;
+  }
+
+  const F=FAMILIES[sel.fi];
+  chip.style.setProperty("--c",famVar(sel.fi));
+  chipT.textContent = `${F.name} · ${F.v} · ${F.a==="high"?"energised":"low energy"}`;
+
+  if(sel.mi===null){
+    name.textContent = F.name;
+    body.innerHTML = `<p style="color:var(--ink-2); font-size:18px">${esc(F.tone)}</p>
+      <dl style="margin:20px 0 0">
+        <div class="field"><dt>Inside it</dt><dd>${F.mids.map(m=>esc(m.name)).join(" · ")}</dd></div>
+      </dl>
+      <p style="color:var(--ink-3); font-size:15px; margin-top:16px">Pick the one that lands. Families are
+      a convention for organising vocabulary, not a claim that your brain files feelings this way — a word
+      that sits in two families at once is a real thing, not a mistake.</p>`;
+    acts.innerHTML="";
+    hubText("family",F.name,`${F.mids.length} feelings`);
+    return;
+  }
+
+  const M=F.mids[sel.mi];
+  const word = sel.ni!==null ? M.nubs[sel.ni] : M.name;
+  name.textContent = word;
+  if(sel.ni!==null) chipT.textContent = `${F.name} → ${M.name}`;
+
+  body.innerHTML = `
+    <dl style="margin:0">
+      <div class="field"><dt>What it is</dt><dd>${esc(M.def)}</dd></div>
+      <div class="field"><dt>In the body</dt><dd><em>${esc(M.body)}</em></dd></div>
+      <div class="field"><dt>Asking for</dt><dd>${esc(M.need)}</dd></div>
+      <div class="field"><dt>Ask yourself</dt><dd>${esc(M.ask)}</dd></div>
+      <div class="field"><dt>More precise</dt><dd><div class="nubs">${
+        M.nubs.map((n,i)=>`<button class="chip" data-nub="${i}" aria-pressed="${sel.ni===i}">${esc(n)}</button>`).join("")
+      }</div></dd></div>
+    </dl>`;
+  acts.innerHTML = `<button class="btn btn-primary" id="useWord">Log “${esc(word)}” →</button>
+                    <button class="btn btn-quiet" id="clearSel">Clear</button>`;
+  hubText(sel.ni!==null?M.name.toLowerCase():F.name.toLowerCase(), word, F.name);
+
+  $$("[data-nub]",body).forEach(b=>b.addEventListener("click",()=>{
+    const i=+b.dataset.nub; select(sel.fi,sel.mi, sel.ni===i?null:i);
+  }));
+  $("#useWord").addEventListener("click",()=>prefill(word,sel.fi));
+  $("#clearSel").addEventListener("click",()=>{ highlightFams=[]; select(null,null,null); });
+}
+
+/* ── vocabulary list view (accessibility + browsing) ── */
+function buildVocab(){
+  $("#vocabList").innerHTML = FAMILIES.map((F,fi)=>`
+    <div>
+      <h4><span class="dot" style="--c:${famVar(fi)}"></span>${esc(F.name)}</h4>
+      <ul>${F.mids.map((M,mi)=>
+        `<li><button data-f="${fi}" data-m="${mi}">${esc(M.name)}</button></li>` +
+        M.nubs.map((n,ni)=>`<li><button data-f="${fi}" data-m="${mi}" data-n="${ni}">${esc(n)}</button></li>`).join("")
+      ).join("")}</ul>
+    </div>`).join("");
+  $$("#vocabList button").forEach(b=>b.addEventListener("click",()=>{
+    select(+b.dataset.f, +b.dataset.m, b.dataset.n!==undefined?+b.dataset.n:null);
+    $("#dial").scrollIntoView({behavior: reduceMotion?"auto":"smooth", block:"start"});
+  }));
+}
+
+/* ══════════════════════════ LADDER ══════════════════════════ */
+const picked = { body:new Set(), quad:null };
+
+$("#bodyChips").innerHTML = BODY_CHIPS.map(c=>
+  `<button class="chip" data-body="${esc(c)}" aria-pressed="false">${esc(c)}</button>`).join("");
+$$("#bodyChips button").forEach(b=>b.addEventListener("click",()=>{
+  const v=b.dataset.body, on=b.getAttribute("aria-pressed")==="true";
+  b.setAttribute("aria-pressed",String(!on));
+  on ? picked.body.delete(v) : picked.body.add(v);
+}));
+
+$("#quad").innerHTML = `
+  <span class="qlab" style="grid-row:2; grid-column:1">High<br>energy</span>
+  <span class="qlab" style="grid-row:1; grid-column:2">Unpleasant</span>
+  <span class="qlab" style="grid-row:1; grid-column:3">Pleasant</span>
+  ${[1,0,3,2].map(i=>{ const q=QUADS[i]; return `
+    <button data-q="${i}" aria-pressed="false" style="grid-row:${q.a==="high"?2:3}; grid-column:${q.v==="unpleasant"?2:3}">
+      <span class="qt">${esc(q.t)}</span><span class="qb">${q.b}</span>
+    </button>`; }).join("")}
+  <span class="qlab" style="grid-row:3; grid-column:1">Low<br>energy</span>`;
+
+$$("#quad button").forEach(b=>b.addEventListener("click",()=>{
+  const i=+b.dataset.q, already = picked.quad===i;
+  $$("#quad button").forEach(x=>x.setAttribute("aria-pressed","false"));
+  picked.quad = already ? null : i;
+  if(!already) b.setAttribute("aria-pressed","true");
+  highlightFams = already ? [] : QUADS[i].fams;
+  sel={fi:null,mi:null,ni:null}; paintDial(); renderReadout();
+}));
+
+$("#toDial").addEventListener("click",()=>{
+  if(picked.quad===null) toast("Pick a square in rung two first");
+  $("#dial").scrollIntoView({behavior: reduceMotion?"auto":"smooth"});
+});
+$("#toLog").addEventListener("click",()=>{
+  if(picked.body.size) $("#bodyIn").value = [...picked.body].join(", ");
+  if(picked.quad!==null && sel.fi===null) $("#famIn").value = String(QUADS[picked.quad].fams[0]);
+  $("#log").scrollIntoView({behavior: reduceMotion?"auto":"smooth"});
+  setTimeout(()=>$("#wordIn").focus(), reduceMotion?0:420);
+});
+
+/* ══════════════════════════ LEDGER ══════════════════════════ */
+const KEY="iws.ledger.v1";
+let entries = [];
+try{ entries = JSON.parse(localStorage.getItem(KEY) || "[]"); if(!Array.isArray(entries)) entries=[]; }
+catch(_){ entries=[]; }
+function persist(){ try{ localStorage.setItem(KEY, JSON.stringify(entries)); }catch(_){ } }
+
+$("#famIn").innerHTML = FAMILIES.map((F,i)=>`<option value="${i}">${esc(F.name)}</option>`).join("");
+let intensity = 3;
+$("#intDial").innerHTML = [1,2,3,4,5].map(n=>
+  `<button data-i="${n}" aria-pressed="${n===3}">${n}</button>`).join("");
+$$("#intDial button").forEach(b=>b.addEventListener("click",()=>{
+  intensity=+b.dataset.i;
+  $$("#intDial button").forEach(x=>x.setAttribute("aria-pressed",String(+x.dataset.i===intensity)));
+}));
+
+function prefill(word,fi){
+  $("#wordIn").value = word;
+  $("#famIn").value  = String(fi);
+  if(picked.body.size && !$("#bodyIn").value) $("#bodyIn").value = [...picked.body].join(", ");
+  else if(!$("#bodyIn").value){
+    const M = sel.mi!==null ? FAMILIES[fi].mids[sel.mi] : null;
+    if(M) $("#bodyIn").placeholder = M.body.replace(/\.$/,"").toLowerCase();
+  }
+  $("#log").scrollIntoView({behavior: reduceMotion?"auto":"smooth"});
+  setTimeout(()=>$("#noteIn").focus(), reduceMotion?0:420);
+}
+
+$("#saveEntry").addEventListener("click",()=>{
+  const word=$("#wordIn").value.trim();
+  if(!word){ $("#wordIn").focus(); toast("Give it a word first — even an imperfect one"); return; }
+  entries.unshift({
+    id: `${Date.now()}-${entries.length}`,
+    ts: new Date().toISOString(),
+    word, fi:+$("#famIn").value, intensity,
+    body:$("#bodyIn").value.trim(), note:$("#noteIn").value.trim()
+  });
+  persist(); renderLog();
+  $("#wordIn").value=""; $("#bodyIn").value=""; $("#noteIn").value="";
+  toast("Recorded. That's the whole practice.");
+});
+
+$("#clearBtn").addEventListener("click",()=>{
+  if(!entries.length){ toast("Nothing to erase"); return; }
+  if(confirm(`Erase all ${entries.length} check-ins? This cannot be undone.`)){
+    entries=[]; persist(); renderLog(); toast("Ledger erased");
+  }
+});
+
+const fmtDate = iso => { const d=new Date(iso);
+  return d.toLocaleDateString(undefined,{month:"short",day:"numeric"}) + "\n" +
+         d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}); };
+const localKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const dayKey = iso => localKey(new Date(iso));
+
+function stats(){
+  const n=entries.length;
+  const words=new Set(entries.map(e=>e.word.toLowerCase()));
+  const days=new Set(entries.map(e=>dayKey(e.ts)));
+  const counts=FAMILIES.map(()=>0);
+  entries.forEach(e=>{ if(counts[e.fi]!==undefined) counts[e.fi]++; });
+  const pleasant=entries.filter(e=>FAMILIES[e.fi]?.v==="pleasant").length;
+  return { n, distinct:words.size, days:days.size, counts, pleasant };
+}
+
+function renderTiles(){
+  const s=stats();
+  const pct = s.n ? Math.round(100*s.pleasant/s.n) : 0;
+  const tiles=[
+    { v:s.n,        l:"check-ins" },
+    { v:s.distinct, l:"distinct words" },
+    { v:s.days,     l:"days logged" },
+    { v:s.n?`${pct}%`:"—", l:"pleasant share" },
+  ];
+  $("#tiles").innerHTML = tiles.map(t=>
+    `<div class="tile"><div class="tv">${esc(t.v)}</div><div class="tl">${t.l}</div></div>`).join("");
+}
+
+function renderDist(){
+  const s=stats(), max=Math.max(1,...s.counts);
+  $("#dist").innerHTML = FAMILIES.map((F,i)=>`
+    <div class="distrow">
+      <span class="dn"><span class="dot" style="--c:${famVar(i)}"></span>${esc(F.name)}</span>
+      <span class="bartrack"><span class="bar" style="--c:${famVar(i)}; width:${(100*s.counts[i]/max).toFixed(1)}%"></span></span>
+      <span class="dv">${s.counts[i]}</span>
+    </div>`).join("");
+}
+
+/* — sparkline: single series, hover crosshair + tooltip — */
+function renderSpark(){
+  const svgS=$("#spark"), tip=$("#sparkTip");
+  const data = entries.slice(0,20).reverse();
+  svgS.textContent="";
+  $("#sparkNote").textContent = data.length<3 ? "needs at least three check-ins" : "";
+  if(data.length<3) return;
+
+  const W=520,H=130, L=22,R=10,T=12,B=20;
+  const x = i => L + (W-L-R) * (data.length===1 ? .5 : i/(data.length-1));
+  const y = v => T + (H-T-B) * (1 - (v-1)/4);
+
+  const g=el("g");
+  [1,3,5].forEach(v=>{
+    g.appendChild(el("line",{class:"spk-grid", x1:L, x2:W-R, y1:y(v), y2:y(v)}));
+    const t=el("text",{class:"spk-ax", x:2, y:y(v)+3.5}); t.textContent=v; g.appendChild(t);
+  });
+
+  const pts = data.map((e,i)=>[x(i),y(e.intensity)]);
+  const line = pts.map((p,i)=>`${i?"L":"M"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join("");
+  g.appendChild(el("path",{class:"spk-area", d:`${line}L${pts[pts.length-1][0].toFixed(1)} ${y(1)}L${pts[0][0].toFixed(1)} ${y(1)}Z`}));
+  g.appendChild(el("path",{class:"spk-line", d:line}));
+  const last=pts[pts.length-1];
+  g.appendChild(el("circle",{class:"spk-end", cx:last[0], cy:last[1], r:4.5}));
+
+  const cross=el("line",{class:"spk-cross", y1:T, y2:H-B, x1:-99, x2:-99, opacity:"0"});
+  g.appendChild(cross);
+  g.appendChild(el("rect",{class:"spk-hit", x:L, y:0, width:W-L-R+8, height:H,
+    style:"cursor:crosshair"}));
+  svgS.appendChild(g);
+
+  const hit=$(".spk-hit",svgS);
+  function move(ev){
+    const r=svgS.getBoundingClientRect();
+    const px=(ev.clientX-r.left)/r.width*W;
+    let bi=0,bd=1e9;
+    pts.forEach((p,i)=>{ const d=Math.abs(p[0]-px); if(d<bd){bd=d;bi=i;} });
+    const e=data[bi], p=pts[bi];
+    cross.setAttribute("x1",p[0]); cross.setAttribute("x2",p[0]); cross.setAttribute("opacity","1");
+    tip.style.left = `${p[0]/W*100}%`;
+    tip.style.top  = `${p[1]/H*100}%`;
+    tip.textContent = `${e.word} · ${e.intensity}/5 · ${new Date(e.ts).toLocaleDateString(undefined,{month:"short",day:"numeric"})}`;
+    tip.style.opacity="1";
+  }
+  hit.addEventListener("pointermove",move);
+  hit.addEventListener("pointerdown",move);
+  hit.addEventListener("pointerleave",()=>{ tip.style.opacity="0"; cross.setAttribute("opacity","0"); });
+}
+
+function renderLedger(){
+  const box=$("#ledger");
+  if(!entries.length){
+    box.innerHTML = `<p class="empty">No check-ins yet. The dial or the ladder will fill the first one —
+      or just type a word above. Twenty seconds is a complete entry.</p>`;
+    return;
+  }
+  box.innerHTML = entries.map(e=>{
+    const F=FAMILIES[e.fi]||FAMILIES[0];
+    return `<div class="entry">
+      <span class="ets num">${esc(fmtDate(e.ts)).replace("\n","<br>")}</span>
+      <span>
+        <span class="ew">
+          <span class="dot" style="--c:${famVar(e.fi)}"></span>
+          <span class="ewn">${esc(e.word)}</span>
+          <span class="eint num">${esc(F.name)} · ${e.intensity}/5</span>
+        </span>
+        ${e.body ? `<span class="enote"><em>${esc(e.body)}</em></span>`:""}
+        ${e.note ? `<span class="enote">${esc(e.note)}</span>`:""}
+      </span>
+      <button class="del" data-del="${esc(e.id)}" aria-label="Delete this check-in" title="Delete">✕</button>
+    </div>`;
+  }).join("");
+  $$("[data-del]",box).forEach(b=>b.addEventListener("click",()=>{
+    entries = entries.filter(x=>x.id!==b.dataset.del); persist(); renderLog();
+  }));
+}
+
+function renderLog(){ renderTiles(); renderSpark(); renderDist(); renderLedger(); }
+
+/* — copy the ledger out —
+   Deliberately NOT the `downloads` capability: declaring one costs the page the
+   ability to be shared by link, which matters more here than handing over a file. */
+$("#exportBtn").addEventListener("click", async ()=>{
+  if(!entries.length){ toast("Nothing to copy yet"); return; }
+  const rows = [["timestamp","word","family","intensity","body","note"],
+    ...[...entries].reverse().map(e=>[e.ts,e.word,(FAMILIES[e.fi]||{}).name||"",e.intensity,e.body,e.note])];
+  const csv = rows.map(r=>r.map(c=>`"${String(c??"").replace(/"/g,'""')}"`).join(",")).join("\n");
+
+  /* show it either way — the clipboard is not reliable inside a sandboxed frame */
+  const box=$("#exportOut"), txt=$("#exportTxt");
+  box.hidden=false; txt.value=csv;
+  try{
+    await navigator.clipboard.writeText(csv);
+    toast(`${entries.length} check-ins copied to your clipboard`);
+  }catch(_){
+    txt.focus(); txt.select();
+    toast("Selected below — copy it with Cmd/Ctrl-C");
+  }
+});
+
+/* ══════════════════════════ PACERS & TIMERS ══════════════════════════ */
+const PRACTICE = {
+  A:{ total:300, cycle:[["Inhale",2000],["Again — top up",1000],["Long exhale",6000]] },
+  B:{ total:180, stages:[[0,"Wide — what's here?"],[60,"Narrow — the breath"],[120,"Wide — whole body"]] },
+  C:{ total:600 },
+};
+const state = { A:{raf:null,acc:0}, B:{raf:null,acc:0}, C:{raf:null,acc:0} };
+let returns = 0;
+
+const fmtClock = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`;
+const PC_MIN = 18, PC_MAX = 58;
+
+function pacerFrame(id){
+  const svgP=$(`#pacer${id}`); svgP.textContent="";
+  const g=el("g");
+  g.appendChild(el("circle",{class:"pc-track", cx:80, cy:80, r:66}));
+  for(let k=0;k<24;k++){
+    const a=-90+k*15, r0=k%6===0?58:62;
+    g.appendChild(el("line",{class:"pc-ticks",
+      x1:(80+r0*Math.cos(rad(a))).toFixed(2), y1:(80+r0*Math.sin(rad(a))).toFixed(2),
+      x2:(80+66*Math.cos(rad(a))).toFixed(2), y2:(80+66*Math.sin(rad(a))).toFixed(2)}));
+  }
+  g.appendChild(el("circle",{class:"pc-fill", id:`fill${id}`, cx:80, cy:80, r:PC_MIN}));
+  g.appendChild(el("circle",{class:"pc-ring", id:`ring${id}`, cx:80, cy:80, r:PC_MIN}));
+  svgP.appendChild(g);
+  setPacer(id, PC_MIN, "ready", PRACTICE[id].total);
+}
+
+function setPacer(id,r,phase,left){
+  const f=$(`#fill${id}`), k=$(`#ring${id}`);
+  if(f){ f.setAttribute("r",r.toFixed(1)); k.setAttribute("r",r.toFixed(1)); }
+  const p=$(`#ph${id}`), t=$(`#clk${id}`);
+  if(p) p.textContent=phase;
+  if(t) t.textContent=fmtClock(left);
+}
+
+/** Radius, phase label and remaining time for a practice at `elapsed` seconds. */
+function pacerAt(id, elapsed){
+  const cfg=PRACTICE[id];
+  const left=Math.max(0, cfg.total-elapsed);
+  let r=PC_MIN, phase="";
+  if(cfg.cycle){
+    const period=cfg.cycle.reduce((a,c)=>a+c[1],0);
+    let m=(elapsed*1000)%period;
+    for(const [label,dur] of cfg.cycle){
+      if(m<dur){
+        const f=m/dur;
+        phase=label;
+        r = label.startsWith("Long") ? PC_MAX-(PC_MAX-PC_MIN)*f
+          : (label==="Inhale" ? PC_MIN+28*f : PC_MIN+28+(PC_MAX-PC_MIN-28)*f);
+        break;
+      }
+      m-=dur;
+    }
+    if(reduceMotion) r = phase.startsWith("Long") ? 26 : 54;
+  } else if(cfg.stages){
+    phase = ([...cfg.stages].reverse().find(st=>elapsed>=st[0]) || cfg.stages[0])[1];
+    r = reduceMotion ? 40 : 38+18*Math.sin(elapsed/5*Math.PI*2);
+  } else {
+    phase="resting";
+    r = reduceMotion ? 40 : 40+8*Math.sin(elapsed/6*Math.PI);
+  }
+  return {r, phase, left};
+}
+
+function startTimer(id){
+  const st=state[id], btn=$(`[data-timer="${id}"]`);
+  if(st.raf){                       // pause: bank the elapsed time
+    cancelAnimationFrame(st.raf); st.raf=null;
+    btn.textContent="Resume";
+    return;
+  }
+  const t0 = performance.now() - st.acc*1000;
+  const tick = now => {
+    /* rAF hands back the frame's start time, which can sit a hair BEFORE the
+       performance.now() read above — so elapsed must be clamped, not trusted. */
+    const elapsed = Math.max(0, (now - t0)/1000);
+    st.acc = elapsed;
+    const {r, phase, left} = pacerAt(id, elapsed);
+    setPacer(id, r, phase, left);
+    if(left<=0){ finishTimer(id); return; }
+    st.raf = requestAnimationFrame(tick);
+  };
+  btn.textContent="Pause";
+  st.raf = requestAnimationFrame(tick);
+}
+
+function finishTimer(id){
+  const st=state[id];
+  if(st.raf) cancelAnimationFrame(st.raf);
+  st.raf=null; st.acc=0;
+  const btn=$(`[data-timer="${id}"]`); if(btn) btn.textContent="Again";
+  setPacer(id,PC_MIN,"done",0);
+  toast("Done. Notice what changed \u2014 and what didn\u2019t.");
+}
+
+function resetTimer(id){
+  const st=state[id];
+  if(st.raf) cancelAnimationFrame(st.raf);
+  st.raf=null; st.acc=0;
+  const btn=$(`[data-timer="${id}"]`); if(btn) btn.textContent="Begin";
+  pacerFrame(id);
+  if(id==="C"){ returns=0; $("#retCount").textContent="0 returns"; }
+}
+
+["A","B","C"].forEach(id=>{
+  pacerFrame(id);
+  $(`[data-timer="${id}"]`).addEventListener("click",()=>startTimer(id));
+  $(`[data-reset="${id}"]`).addEventListener("click",()=>resetTimer(id));
+});
+
+$("#retBtn").addEventListener("click",()=>{
+  returns++;
+  $("#retCount").textContent = `${returns} return${returns===1?"":"s"}`;
+  if(returns===8) toast("Eight returns is eight repetitions. That\u2019s the work.");
+});
+
+/* ══════════════════════════ GO ══════════════════════════ */
+buildDial(); buildVocab(); renderReadout(); renderLog();
+</script>
+
+</body>
+</html>
