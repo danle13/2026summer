@@ -1,0 +1,1712 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="気持ちのダイヤル、名づけの手がかり、記録帳、そしていまここにいる練習。">
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img,svg{max-width:100%}</style>
+</head>
+<body>
+<title>心の観測所</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* ─────────────────────────  TOKENS  ───────────────────────── */
+:root{
+  --ground:#E9EDEC; --panel:#F5F8F7; --sunk:#DFE7E6;
+  --ink:#0F2229; --ink-2:#3D5760; --ink-3:#6D858B;
+  --rule:#C6D2D2; --rule-2:#AABABA;
+  --accent:#0F6B76; --accent-2:#0B4E56; --accent-ink:#FFFFFF; --accent-wash:#D7E7E8;
+  --f1:#CD9A1B; --f2:#8E2F63; --f3:#2E9E76; --f4:#22588F; --f5:#9679D4; --f6:#B02D22;
+  --tint-rest:32%; --tint-core:44%; --tint-hover:53%; --tint-on:72%; --tint-dim:13%;
+  --lift: 0 1px 1px rgba(15,34,41,.05), 0 10px 30px -18px rgba(15,34,41,.35);
+  --dial-glass: radial-gradient(circle at 42% 34%, rgba(255,255,255,.28), rgba(255,255,255,0) 58%);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0C1A20; --panel:#14252C; --sunk:#0A161B;
+    --ink:#E3EDEC; --ink-2:#A9BFC4; --ink-3:#7D959B;
+    --rule:#263B43; --rule-2:#375057;
+    --accent:#5CC2CC; --accent-2:#8FDCE3; --accent-ink:#08181C; --accent-wash:#16333A;
+    --f1:#B68B2E; --f2:#A63A6E; --f3:#33AC74; --f4:#2A6BB4; --f5:#9C82D6; --f6:#DC5B3C;
+    --tint-rest:26%; --tint-core:37%; --tint-hover:47%; --tint-on:66%; --tint-dim:11%;
+    --lift: 0 1px 1px rgba(0,0,0,.4), 0 14px 34px -18px rgba(0,0,0,.7);
+    --dial-glass: radial-gradient(circle at 42% 34%, rgba(160,220,225,.10), rgba(0,0,0,0) 60%);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0C1A20; --panel:#14252C; --sunk:#0A161B;
+  --ink:#E3EDEC; --ink-2:#A9BFC4; --ink-3:#7D959B;
+  --rule:#263B43; --rule-2:#375057;
+  --accent:#5CC2CC; --accent-2:#8FDCE3; --accent-ink:#08181C; --accent-wash:#16333A;
+  --f1:#B68B2E; --f2:#A63A6E; --f3:#33AC74; --f4:#2A6BB4; --f5:#9C82D6; --f6:#DC5B3C;
+  --tint-rest:26%; --tint-core:37%; --tint-hover:47%; --tint-on:66%; --tint-dim:11%;
+  --lift: 0 1px 1px rgba(0,0,0,.4), 0 14px 34px -18px rgba(0,0,0,.7);
+  --dial-glass: radial-gradient(circle at 42% 34%, rgba(160,220,225,.10), rgba(0,0,0,0) 60%);
+}
+
+/* ─────────────────────────  BASE (Japanese typesetting)  ───────────────────────── */
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",
+    "Yu Gothic Medium","Meiryo",sans-serif;
+  font-size:16.5px; line-height:1.88; font-weight:400;
+  font-feature-settings:"palt" 1;          /* proportional kana — real JP typesetting */
+  line-break:strict; word-break:normal; overflow-wrap:break-word;
+  text-spacing-trim:trim-start;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{margin:0; font-weight:400; line-break:strict}
+p{margin:0}
+a{color:var(--accent); text-decoration-thickness:1px; text-underline-offset:4px}
+:where(button,a,input,textarea,select,[tabindex]):focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px; border-radius:2px;
+}
+.wrap{max-width:1120px; margin:0 auto; padding:0 24px}
+.measure{max-width:40em}
+
+.mincho{font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif; font-weight:400}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.num{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+
+/* Japanese has no italic. Emphasis is 圏点 — dots set above the text. */
+.em{
+  font-style:normal; font-weight:500;
+  -webkit-text-emphasis:filled dot currentColor; text-emphasis:filled dot currentColor;
+  -webkit-text-emphasis-position:over right; text-emphasis-position:over right;
+}
+.kana{font-size:.62em; color:var(--ink-3); letter-spacing:.04em; font-feature-settings:normal}
+
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11px; font-weight:500;
+  letter-spacing:.16em; color:var(--ink-3); line-height:1.6;
+}
+.eyebrow-jp{
+  font-size:11.5px; font-weight:500; letter-spacing:.22em; color:var(--ink-3); line-height:1.7;
+}
+
+section{padding:80px 0 8px}
+section > .wrap > header{display:flex; flex-direction:column; gap:16px; margin-bottom:36px}
+.sec-title{font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif; font-size:clamp(28px,4.2vw,42px); line-height:1.36; letter-spacing:.02em}
+.sec-lede{color:var(--ink-2); font-size:17px; max-width:38em; line-height:1.9}
+
+.card{background:var(--panel); border:1px solid var(--rule); border-radius:3px; padding:26px}
+.stack{display:flex; flex-direction:column}
+.g8{gap:8px} .g10{gap:10px} .g14{gap:14px} .g20{gap:20px} .g28{gap:28px}
+
+/* ─────────────────────────  MASTHEAD  ───────────────────────── */
+.mast{border-bottom:1px solid var(--rule); background:var(--panel)}
+.mast-in{display:flex; align-items:center; justify-content:space-between; gap:20px; padding:14px 24px; max-width:1120px; margin:0 auto; flex-wrap:wrap}
+.brand{display:flex; align-items:center; gap:12px}
+.brand-mark{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.2em; color:var(--accent); border:1px solid var(--rule-2); padding:3px 6px; border-radius:2px}
+.brand-name{font-family:"Shippori Mincho",serif; font-size:20px; letter-spacing:.1em}
+nav.jump{display:flex; gap:2px; flex-wrap:wrap}
+nav.jump a{font-size:12px; letter-spacing:.12em; color:var(--ink-2); text-decoration:none; padding:6px 10px; border-radius:2px}
+nav.jump a:hover{color:var(--ink); background:var(--sunk)}
+
+.hero{padding:66px 0 30px}
+.hero h1{font-family:"Shippori Mincho",serif; font-size:clamp(30px,5.4vw,56px); line-height:1.42; letter-spacing:.02em}
+.hero h1 .soft{color:var(--ink-2)}
+.hero p{font-size:18px; color:var(--ink-2); max-width:36em; margin-top:26px; line-height:1.95}
+.disclaim{margin-top:30px; border-left:2px solid var(--rule-2); padding:2px 0 2px 18px; font-size:14.5px; color:var(--ink-3); max-width:40em; line-height:1.85}
+
+/* ─────────────────────────  DIAL  ───────────────────────── */
+.dial-grid{display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:44px; align-items:start}
+@media (max-width:1000px){ .dial-grid{grid-template-columns:1fr; gap:30px} }
+
+.dial-shell{position:relative; background:var(--panel); border:1px solid var(--rule); border-radius:50%; padding:10px; box-shadow:var(--lift)}
+.dial-shell::after{content:""; position:absolute; inset:0; border-radius:50%; background:var(--dial-glass); pointer-events:none}
+svg.dial{display:block; width:100%; height:auto; overflow:visible}
+
+.wseg{fill:color-mix(in oklab, var(--c) var(--tint-rest), var(--panel)); stroke:var(--panel); stroke-width:2; transition:fill .16s ease}
+.wedge[data-kind="core"] .wseg{fill:color-mix(in oklab, var(--c) var(--tint-core), var(--panel))}
+.wedge{cursor:pointer}
+.wedge:hover .wseg{fill:color-mix(in oklab, var(--c) var(--tint-hover), var(--panel))}
+.wedge[data-on="1"] .wseg{fill:color-mix(in oklab, var(--c) var(--tint-on), var(--panel)); stroke:var(--c); stroke-width:1.5}
+.wedge[data-dim="1"] .wseg{fill:color-mix(in oklab, var(--c) var(--tint-dim), var(--panel))}
+.wedge[data-dim="1"] .wlabel{opacity:.5}
+.wedge:focus{outline:none}
+.wedge:focus-visible .wseg{stroke:var(--ink); stroke-width:2.5}
+
+/* glyphs stay upright at every angle — stacked outward along the radius */
+.wlabel{pointer-events:none; transition:opacity .16s ease}
+.wlabel text{text-anchor:middle; dominant-baseline:central; fill:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Sans",sans-serif; font-feature-settings:normal}
+.wl-core text{font-size:17px; font-weight:700; letter-spacing:.06em}
+.wl-mid  text{font-size:14.5px; font-weight:500}
+.wl-nub  text{font-size:14px; font-weight:400; fill:var(--ink-2)}
+.tick{stroke:var(--rule-2); stroke-width:1}
+.tick-major{stroke:var(--ink-3); stroke-width:1.6}
+.hub-plate{fill:var(--sunk); stroke:var(--rule); stroke-width:1}
+.hub-word{font-family:"Shippori Mincho",serif; fill:var(--ink); text-anchor:middle; dominant-baseline:central; letter-spacing:.04em}
+.hub-sub{font-size:11px; letter-spacing:.18em; fill:var(--ink-3); text-anchor:middle; dominant-baseline:central;
+  font-family:"Zen Kaku Gothic New",sans-serif}
+
+.readout{position:sticky; top:16px}
+.readout-head{border-bottom:1px solid var(--rule); padding-bottom:18px; margin-bottom:20px}
+.readout-kana{font-size:12.5px; letter-spacing:.22em; color:var(--ink-3); display:block; min-height:1.3em}
+.readout-name{font-family:"Shippori Mincho",serif; font-size:clamp(28px,4.4vw,40px); line-height:1.32; letter-spacing:.03em; margin-top:2px}
+.fam-chip{display:inline-flex; align-items:center; gap:8px; font-size:11.5px; letter-spacing:.16em; color:var(--ink-2)}
+.dot{width:10px; height:10px; border-radius:50%; background:var(--c,var(--accent)); flex:0 0 auto}
+.field{display:grid; grid-template-columns:6.5em 1fr; gap:16px; padding:14px 0; border-bottom:1px dashed var(--rule)}
+.field:last-of-type{border-bottom:0}
+.field dt{font-size:11.5px; letter-spacing:.14em; color:var(--ink-3); padding-top:6px; line-height:1.6}
+.field dd{margin:0; color:var(--ink); font-size:15.5px; line-height:1.88}
+@media (max-width:560px){ .field{grid-template-columns:1fr; gap:4px} }
+.nubs{display:flex; flex-wrap:wrap; gap:7px; margin-top:4px}
+
+.btn{font-size:12.5px; letter-spacing:.1em; background:transparent; color:var(--ink);
+  border:1px solid var(--rule-2); border-radius:2px; padding:10px 16px; cursor:pointer;
+  font-family:inherit; transition:background .15s, border-color .15s}
+.btn:hover{background:var(--sunk); border-color:var(--ink-3)}
+.btn-primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent-2); border-color:var(--accent-2); color:var(--accent-ink)}
+.btn-quiet{border-color:var(--rule); color:var(--ink-2); font-size:12px; padding:8px 12px}
+.btn-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:22px}
+.chip{font-size:13.5px; background:var(--sunk); color:var(--ink); border:1px solid var(--rule);
+  border-radius:2px; padding:6px 12px; cursor:pointer; font-family:inherit}
+.chip:hover{border-color:var(--ink-3)}
+.chip[aria-pressed="true"]{background:var(--accent-wash); border-color:var(--accent)}
+
+details.listview{margin-top:28px; border-top:1px solid var(--rule); padding-top:18px}
+details.listview summary{cursor:pointer; font-size:12.5px; letter-spacing:.14em; color:var(--ink-2)}
+details.listview summary:hover{color:var(--ink)}
+.vocab{display:grid; grid-template-columns:repeat(auto-fill,minmax(238px,1fr)); gap:24px; margin-top:24px}
+.vocab h4{font-size:12px; letter-spacing:.16em; display:flex; align-items:center; gap:8px; margin-bottom:10px}
+.vocab ul{list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px}
+.vocab button{font-family:inherit; font-size:14px; background:none; border:0;
+  border-bottom:1px solid var(--rule); color:var(--ink-2); padding:1px 0; cursor:pointer}
+.vocab button:hover{color:var(--ink); border-color:var(--ink)}
+
+/* ─────────────────────────  LADDER  ───────────────────────── */
+.rungs{display:flex; flex-direction:column}
+.rung{display:grid; grid-template-columns:56px 1fr; gap:22px; padding:32px 0; border-top:1px solid var(--rule)}
+.rung:last-child{border-bottom:1px solid var(--rule)}
+.rung-n{font-family:"Shippori Mincho",serif; font-size:32px; color:var(--rule-2); line-height:1}
+.rung h3{font-family:"Shippori Mincho",serif; font-size:24px; line-height:1.42; letter-spacing:.02em}
+.rung .ask{font-size:17.5px; max-width:36em; line-height:1.9}
+.rung .why{font-size:14.5px; color:var(--ink-2); max-width:38em; line-height:1.85}
+@media (max-width:640px){ .rung{grid-template-columns:1fr; gap:12px} .rung-n{font-size:24px} }
+
+.quad{display:grid; grid-template-columns:auto 1fr 1fr; grid-template-rows:auto auto auto; gap:8px; max-width:560px; margin-top:8px}
+.quad .qlab{font-size:11px; letter-spacing:.12em; color:var(--ink-3); display:flex; align-items:center; justify-content:center; text-align:center; padding:0 6px; line-height:1.5}
+.quad button{text-align:left; background:var(--panel); border:1px solid var(--rule); border-radius:3px;
+  padding:15px; cursor:pointer; color:var(--ink); font-family:inherit; min-height:96px; transition:border-color .15s, background .15s}
+.quad button:hover{border-color:var(--ink-3)}
+.quad button[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-wash)}
+.quad .qt{font-size:11px; letter-spacing:.14em; color:var(--ink-3); display:block; margin-bottom:7px}
+.quad .qb{font-size:15.5px; line-height:1.6; display:block}
+.quad .qb b{font-weight:700}
+
+.tblwrap{overflow-x:auto}
+.imposters table{width:100%; border-collapse:collapse; font-size:15px}
+.imposters th{text-align:left; font-size:11.5px; letter-spacing:.14em; color:var(--ink-3); font-weight:500; padding:0 16px 10px 0; border-bottom:1px solid var(--rule); white-space:nowrap}
+.imposters td{padding:12px 16px 12px 0; border-bottom:1px solid var(--rule); vertical-align:top; color:var(--ink-2); line-height:1.8}
+.imposters td:first-child{color:var(--ink); white-space:nowrap; font-weight:500}
+
+/* ─────────────────────────  LEDGER  ───────────────────────── */
+.log-grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); gap:42px; align-items:start}
+@media (max-width:1000px){ .log-grid{grid-template-columns:1fr; gap:32px} }
+.lab{font-size:11.5px; letter-spacing:.14em; color:var(--ink-3); display:block; margin-bottom:8px}
+input[type="text"], textarea, select{width:100%; font-family:inherit; font-size:16px; color:var(--ink);
+  background:var(--ground); border:1px solid var(--rule-2); border-radius:2px; padding:11px 13px; line-height:1.7}
+textarea{resize:vertical; min-height:66px}
+input::placeholder, textarea::placeholder{color:var(--ink-3)}
+.dialer{display:flex; gap:6px}
+.dialer button{flex:1; font-family:"IBM Plex Mono",monospace; font-size:13px; padding:11px 0;
+  background:var(--ground); border:1px solid var(--rule-2); border-radius:2px; color:var(--ink-2); cursor:pointer}
+.dialer button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.dial-scale{display:flex; justify-content:space-between; font-size:11px; color:var(--ink-3); margin-top:7px}
+
+.tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(124px,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:3px; overflow:hidden}
+.tile{background:var(--panel); padding:15px 17px}
+.tile .tv{font-family:"IBM Plex Mono",monospace; font-size:26px; font-weight:500; font-variant-numeric:tabular-nums; line-height:1.15}
+.tile .tl{font-size:11px; letter-spacing:.1em; color:var(--ink-3); margin-top:6px; line-height:1.6}
+
+.spark-card{margin-top:1px}
+.spark-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:4px}
+svg.spark{display:block; width:100%; height:auto; overflow:visible; touch-action:none}
+.spk-line{fill:none; stroke:var(--accent); stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+.spk-area{fill:var(--accent); opacity:.11}
+.spk-grid{stroke:var(--rule); stroke-width:1}
+.spk-end{fill:var(--accent); stroke:var(--panel); stroke-width:2}
+.spk-hit{fill:transparent}
+.spk-cross{stroke:var(--ink-3); stroke-width:1; stroke-dasharray:2 3}
+.spk-ax{font-family:"IBM Plex Mono",monospace; font-size:9.5px; fill:var(--ink-3)}
+.tip{position:absolute; pointer-events:none; background:var(--ink); color:var(--ground); font-size:12px;
+  padding:7px 10px; border-radius:2px; white-space:nowrap; transform:translate(-50%,-135%); opacity:0; transition:opacity .1s; z-index:5}
+.relpos{position:relative}
+
+.dist{display:flex; flex-direction:column; gap:3px; margin-top:18px}
+.distrow{display:grid; grid-template-columns:5.5em 1fr 2.2em; gap:12px; align-items:center; font-size:13.5px}
+.distrow .dn{font-size:12.5px; color:var(--ink-2); display:flex; align-items:center; gap:8px}
+.bartrack{display:block; background:var(--sunk); border-radius:1px; overflow:hidden}
+.bar{display:block; height:9px; border-radius:1px; background:var(--c); min-width:2px}
+.distrow .dv{font-family:"IBM Plex Mono",monospace; font-size:12px; font-variant-numeric:tabular-nums; color:var(--ink-2); text-align:right}
+
+.ledger{margin-top:26px; border-top:1px solid var(--rule)}
+.entry{display:grid; grid-template-columns:5.6em 1fr auto; gap:16px; padding:14px 0; border-bottom:1px solid var(--rule); align-items:start}
+.entry .ets{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3); font-variant-numeric:tabular-nums; padding-top:5px; line-height:1.45}
+.entry .ew{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap}
+.entry .ewn{font-size:17px; font-weight:500}
+.entry .eint{font-size:11.5px; color:var(--ink-3); letter-spacing:.08em}
+.entry .enote{display:block; font-size:14.5px; color:var(--ink-2); margin-top:4px; line-height:1.8}
+.entry .del{background:none; border:0; color:var(--ink-3); cursor:pointer; font-size:13px; padding:2px 5px; line-height:1}
+.entry .del:hover{color:var(--f6)}
+.empty{padding:28px 0; color:var(--ink-3); font-size:15px; line-height:1.85}
+
+/* ─────────────────────────  PRACTICE  ───────────────────────── */
+.prac-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(296px,1fr)); gap:20px}
+.prac{display:flex; flex-direction:column; gap:15px}
+.prac h3{font-family:"Shippori Mincho",serif; font-size:23px; line-height:1.4; letter-spacing:.02em}
+.prac .how{font-size:15px; color:var(--ink-2); line-height:1.88}
+.prac .src{font-size:13.5px; color:var(--ink-3); line-height:1.8}
+.pacer-wrap{display:flex; flex-direction:column; align-items:center; gap:10px; padding:10px 0; margin-top:auto}
+svg.pacer{width:154px; height:154px; overflow:visible}
+.pc-track{fill:none; stroke:var(--rule); stroke-width:1}
+.pc-fill{fill:var(--accent); opacity:.14}
+.pc-ring{fill:none; stroke:var(--accent); stroke-width:2}
+.pc-ticks{stroke:var(--rule-2); stroke-width:1}
+.pc-readout{display:flex; flex-direction:column; align-items:center; gap:2px; margin:0}
+.pc-clock{font-family:"IBM Plex Mono",monospace; font-size:23px; font-weight:500; font-variant-numeric:tabular-nums; line-height:1.15}
+.pc-lab{font-size:11.5px; letter-spacing:.16em; color:var(--ink-3)}
+.prac-foot{display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding-top:6px}
+.retcount{font-size:12px; color:var(--ink-3); letter-spacing:.06em}
+.pill{display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.12em;
+  padding:4px 8px; border-radius:2px; border:1px solid var(--rule-2); color:var(--ink-2)}
+
+/* ─────────────────────────  TEACH  ───────────────────────── */
+.moves{display:grid; grid-template-columns:repeat(auto-fit,minmax(252px,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:3px; overflow:hidden}
+.move{background:var(--panel); padding:24px}
+.move .mk{font-size:11px; letter-spacing:.16em; color:var(--accent); margin-bottom:10px}
+.move h4{font-family:"Shippori Mincho",serif; font-size:21px; line-height:1.4; margin-bottom:10px; letter-spacing:.02em}
+.move p{font-size:14.5px; color:var(--ink-2); line-height:1.85}
+
+.scripts{display:flex; flex-direction:column; gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:3px; overflow:hidden}
+.script{background:var(--panel); padding:24px 26px}
+.script .who{font-size:11.5px; letter-spacing:.16em; color:var(--ink-3); margin-bottom:16px}
+.line{display:grid; grid-template-columns:5em 1fr; gap:16px; padding:6px 0; max-width:44em}
+.line .sp{font-size:11.5px; color:var(--ink-3); padding-top:6px; letter-spacing:.1em}
+.line .sl{font-size:16px; line-height:1.88}
+.line .sl .stage{color:var(--ink-3); font-size:14px}
+.gloss{font-size:14.5px; color:var(--ink-2); border-left:2px solid var(--rule-2); padding-left:16px; margin-top:18px; max-width:40em; line-height:1.85}
+@media (max-width:560px){ .line{grid-template-columns:1fr; gap:2px} .line .sp{padding-top:10px} }
+
+.donts{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:30px 44px}
+@media (max-width:700px){ .donts{grid-template-columns:1fr} }
+.dont{border-top:2px solid var(--ink); padding-top:16px}
+.dont .bad{font-size:18px; font-family:"Shippori Mincho",serif; letter-spacing:.02em}
+.dont .why{font-size:14.5px; color:var(--ink-2); margin-top:9px; line-height:1.85}
+.dont .instead{font-size:15px; margin-top:12px; color:var(--ink-2); line-height:1.85}
+.dont .instead b{font-size:11px; letter-spacing:.14em; color:var(--accent); display:block; margin-bottom:4px; font-weight:500}
+
+.ritual p{font-size:15.5px; color:var(--ink-2); line-height:1.9}
+.ritual .t{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.1em; color:var(--accent); font-weight:500}
+
+/* ─────────────────────────  EVIDENCE  ───────────────────────── */
+.tiers{display:flex; flex-direction:column; gap:36px}
+.tier h3{font-size:12px; letter-spacing:.18em; display:flex; align-items:center; gap:10px; padding-bottom:12px; border-bottom:1px solid var(--rule)}
+.tier h3 .grade{width:8px; height:8px; border-radius:50%}
+.tier ul{list-style:none; margin:16px 0 0; padding:0; display:flex; flex-direction:column; gap:20px}
+.tier li{max-width:46em}
+.tier .claim{font-size:16px; line-height:1.85}
+.tier .cite{font-size:13px; color:var(--ink-3); line-height:1.8; margin-top:3px}
+
+footer{margin-top:76px; border-top:1px solid var(--rule); background:var(--panel)}
+.foot-in{max-width:1120px; margin:0 auto; padding:36px 24px 48px; display:flex; flex-direction:column; gap:16px}
+.foot-in p{font-size:14.5px; color:var(--ink-3); max-width:44em; line-height:1.88}
+
+.toast{position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(14px);
+  background:var(--ink); color:var(--ground); font-size:13px; padding:11px 18px; border-radius:2px;
+  opacity:0; pointer-events:none; transition:opacity .18s, transform .18s; z-index:50}
+.toast[data-on="1"]{opacity:1; transform:translateX(-50%) translateY(0)}
+
+@media (max-width:560px){
+  body{font-size:16px}
+  .wrap{padding:0 18px}
+  .hero{padding:40px 0 22px}
+  .hero p{font-size:17px}
+  section{padding:56px 0 4px}
+  .card{padding:19px}
+  nav.jump a{font-size:11px; padding:6px 7px}
+  .mast-in{padding:12px 18px}
+  .foot-in{padding:28px 18px 40px}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important}
+}
+</style>
+
+<header class="mast">
+  <div class="mast-in">
+    <div class="brand">
+      <span class="brand-mark">STN 01</span>
+      <span class="brand-name">心の観測所</span>
+    </div>
+    <nav class="jump" aria-label="セクション">
+      <a href="#dial">ダイヤル</a>
+      <a href="#name">名づけ</a>
+      <a href="#log">記録帳</a>
+      <a href="#presence">いまここ</a>
+      <a href="#teach">手渡す</a>
+      <a href="#evidence">根拠</a>
+      <a href="https://danle13.github.io/2026summer/feelings/" style="color:var(--accent)" lang="en">English</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<div class="hero"><div class="wrap">
+  <p class="eyebrow-jp" style="margin-bottom:22px">気づく・名づける・そこにいる ——— そのための道具</p>
+  <h1>あなたは天気ではありません。<br><span class="soft">天気を読む、観測所です。</span></h1>
+  <p>気持ちは天気のように訪れます。急に、身体から、招いてもいないのに、そして必ず過ぎていきます。
+  大切なのは気持ちを消すことではなく、正確に読めるようになること。正確に読めれば、
+  そのあと何をするかを自分で選べます。このページは読むためではなく、使うために作られています。
+  ぴったりの言葉を探すダイヤル、言葉が出てこないときの手がかり、自分の傾向が見えてくる記録帳、
+  そして誰にも代わってもらえない部分 ——— いまここにいる練習です。</p>
+  <p class="disclaim">これは心理教育と自己観察のための道具で、治療や診断ではありません。
+  発表された研究にもとづいていますが、どの主張がどれくらいの強さで支えられているかは、
+  ページの最後に正直に書いてあります。もし抱えきれないほど何かが開いてしまったら、
+  それは専門家に相談してよいという合図です。</p>
+</div></div>
+
+<!-- ══════════════════ THE DIAL ══════════════════ -->
+<section id="dial"><div class="wrap">
+  <header>
+    <p class="eyebrow">01 — THE DIAL</p>
+    <h2 class="sec-title">ダイヤル</h2>
+    <p class="sec-lede">内側の輪に六つの家族。並び順は適当ではなく、感情が実際に変化する二つの軸
+    ——— 心地よさと、身体のエネルギー ——— に沿っています。内から外へ。家族、気持ち、そして
+    ぴったりの言葉。外に一つ進むたびに<span class="em">解像度</span>が上がります。
+    そしてこの解像度こそが、気持ちとの付き合い方のうまさを予測する部分です。</p>
+  </header>
+
+  <div class="dial-grid">
+    <div>
+      <div class="dial-shell"><svg class="dial" id="dialSvg" viewBox="0 0 800 800" role="group" aria-label="気持ちのダイヤル"></svg></div>
+      <p class="eyebrow-jp" style="margin-top:18px; text-align:center">
+        内の輪＝家族 ・ 中の輪＝気持ち ・ 外の輪＝ぴったりの言葉<br>
+        <span style="letter-spacing:.1em; color:var(--ink-3)">言葉は放射状に、それぞれ読みやすい向きで並びます。上から時計回りに、明るく元気 → 明るく静か → 重く静か → 重く元気</span></p>
+    </div>
+
+    <div class="readout" id="readout">
+      <div class="readout-head">
+        <span class="fam-chip" id="roChip"><span class="dot" style="--c:var(--accent)"></span><span id="roChipTxt">まだ選ばれていません</span></span>
+        <span class="readout-kana" id="roKana"></span>
+        <h3 class="readout-name" id="roName">どこから始めても</h3>
+      </div>
+      <div id="roBody"></div>
+      <div class="btn-row" id="roActions"></div>
+
+      <details class="listview">
+        <summary>ぜんぶの言葉を一覧で見る</summary>
+        <div class="vocab" id="vocabList"></div>
+      </details>
+    </div>
+  </div>
+</div></section>
+
+<!-- ══════════════════ NAMING LADDER ══════════════════ -->
+<section id="name"><div class="wrap">
+  <header>
+    <p class="eyebrow">02 — FIVE RUNGS</p>
+    <h2 class="sec-title">名前をつける、五つの段</h2>
+    <p class="sec-lede">ほとんどの人はまず名札を探して、「べつに」「疲れた」「なんかいや」に着地します。
+    身体から上へ登っていくほうが、ずっと本当に近いところに着きます。順番どおりに。
+    一段ごとに、次の段の選択肢が狭まります。</p>
+  </header>
+
+  <div class="rungs">
+
+    <div class="rung">
+      <div class="rung-n">一</div>
+      <div class="stack g14">
+        <h3>名づける前に、身体のどこにあるか探す</h3>
+        <p class="ask">十秒だけ目を閉じてください。<b>これは、どこにありますか。</b>
+        意味ではなく、場所です。温度、重さ、動き、輪郭。大きさはありますか。</p>
+        <div>
+          <span class="lab">あてはまるものを押してください（記録帳に入ります）</span>
+          <div class="nubs" id="bodyChips"></div>
+        </div>
+        <p class="why">内受容感覚 ——— 自分の内側の状態を感じ取る力 ——— が、感情が実際に検出される場所です。
+        身体の信号を正確に読める人は、自分の感情をより細かく言い当てます。名札から始めると、
+        このデータを丸ごと飛ばしてしまいます。</p>
+      </div>
+    </div>
+
+    <div class="rung">
+      <div class="rung-n">二</div>
+      <div class="stack g14">
+        <h3>二つのつまみを合わせる ——— 元気と、心地</h3>
+        <p class="ask">正確な言葉の前に、だいたいの区画を決めます。
+        <b>身体は張っていますか、落ちていますか。これは心地よいですか、よくないですか。</b></p>
+        <div class="quad" id="quad" role="group" aria-label="元気と心地の四区画"></div>
+        <p class="why">感情のほとんどはこの二軸に収まります（ラッセルの円環モデル）。
+        二つの質問と四つの答えで、七十二の言葉が十数個まで絡ります。そして、
+        頭が回らないほど飲み込まれているときでも答えられる唯一の段です。</p>
+      </div>
+    </div>
+
+    <div class="rung">
+      <div class="rung-n">三</div>
+      <div class="stack g14">
+        <h3>つまみが指した家族に行く</h3>
+        <p class="ask">ダイヤルに戻って、明るく残った家族を開いてください。
+        <b>読んだ瞬間、肩が一センチ下がるのはどれですか。</b>その一センチが合図です。</p>
+        <div class="btn-row" style="margin-top:0"><button class="btn" id="toDial">この家族でダイヤルを開く →</button></div>
+        <p class="why">探しているのは推理ではなく、心当たりです。ジェンドリンはこの照らし合わせる相手を
+        <span class="em">フェルトセンス</span>と呼びました。身体は、頭で考えるより速く言葉を受け入れるか断るかを決め、
+        受け入れたときの感じは「ゆるむ」に似ています。</p>
+      </div>
+    </div>
+
+    <div class="rung">
+      <div class="rung-n">四</div>
+      <div class="stack g14">
+        <h3>必要より一段、細かい言葉にする</h3>
+        <p class="ask">「かなしい」ではなく「所在ない」。「いや」ではなく「気まずい」。
+        <b>二つとも合う気がしたら、息が吐けるほうを選んでください。</b>
+        どれも合わないときは、一番近いものに「———それと、まだ名前のつかない何か」を足しておきます。</p>
+        <p class="why">気持ちを言葉にすると、脳の警報部分（扁桃体）の反応が実際に小さくなり、
+        前頭前野の働きが上がります。「名づけて手なずける」の仕組みです。効果は本物ですが控えめで、
+        楽になるために名づけるときよりも、正確であろうとして名づけるときのほうがよく働きます。</p>
+      </div>
+    </div>
+
+    <div class="rung">
+      <div class="rung-n">五</div>
+      <div class="stack g14">
+        <h3>それが何を求めているか、聞く</h3>
+        <p class="ask">どの気持ちもお願いごとです。<b>これが求めているのは何ですか ———
+        誰かとのつながり、休息、情報、境界線、決断、それとも、ただ見ていてもらうこと。</b>
+        そのうえで一つ動かします。状況を変える、注意の置き場所を変える、受け取り方を変える、
+        身体のしていることを変える。</p>
+        <p class="why">この四つはグロスの感情調整の四家族です。順番に意味があります。
+        鎖の早い段階（状況を選ぶ、状況を整える）で動くほうが、完全に到着したあとの気持ちと
+        組み合うより負担が軽い。そして、捉えなおしは効きますが、押し込めるのは効きません。</p>
+        <div class="btn-row" style="margin-top:8px"><button class="btn btn-primary" id="toLog">見つけたものを記録する →</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card imposters" style="margin-top:46px">
+    <p class="eyebrow-jp" style="margin-bottom:14px">気持ちのふりをした言葉</p>
+    <p style="margin-bottom:22px; color:var(--ink-2); max-width:40em">
+    気持ちのように聞こえて、じつは相手の行いについての判定になっている言葉があります。
+    外を向いていて、言い争いを呼び、下にあるものを隠してしまいます。
+    気持ちと、必要としているものに両替してください ———
+    ローゼンバーグの非暴力コミュニケーションの中心にある動きです。</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>気持ちに見えるが</th><th>実際にはこれ</th><th>言いかえると</th></tr></thead>
+      <tbody>
+        <tr><td>無視された</td><td>相手の注意についての解釈</td><td>「傷ついた。こっちを見て話してほしい」</td></tr>
+        <tr><td>見捨てられた</td><td>相手がしたことについての主張</td><td>「心細い。戻ってくると知っていたい」</td></tr>
+        <tr><td>バカにされた</td><td>相手の意図についての決めつけ</td><td>「悔しい。大事にしているものを軽く扱われた」</td></tr>
+        <tr><td>認めてもらえない</td><td>もらえなかったものの数え上げ</td><td>「疲れた。やったことを言葉にしてほしい」</td></tr>
+        <tr><td>気をつかわされた</td><td>相手の振る舞いへの評価</td><td>「気まずい。何を求められているのか知りたい」</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="card" style="margin-top:1px; max-width:46em">
+    <p class="eyebrow-jp" style="margin-bottom:14px">我慢と、空気を読むこと</p>
+    <p style="color:var(--ink-2)">正直に言っておくべきことがあります。この練習は、
+    場の空気を読むことが上手さとされる文化のなかでは、より難しくなります。
+    <span class="em">我慢</span>は多くの場面で本当に有用な技術です。言わずに収めることで、
+    守られている関係が確かにあります。ただ、我慢には内訳があります ———
+    「いま言わないでおく」と決めることと、「自分が何を感じているか分からなくなる」ことは別物です。
+    前者は選択で、後者は解像度の低下です。<br><br>
+    このダイヤルは、誰かに言うための道具ではありません。まず自分が知るための道具です。
+    伝えるかどうかは、そのあとに、別に決められます。順番が逆になっているとき ———
+    何を感じているか分からないまま、それでも我慢しているとき ———
+    負担はいちばん大きくなります。</p>
+  </div>
+</div></section>
+
+<!-- ══════════════════ LEDGER ══════════════════ -->
+<section id="log"><div class="wrap">
+  <header>
+    <p class="eyebrow">03 — THE LEDGER</p>
+    <h2 class="sec-title">記録帳</h2>
+    <p class="sec-lede">観測所が役に立つのは、記録を取っているからです。一回の記入は二十秒。
+    価値が見えてくるのは十五回目あたり、ばらばらだと思っていたものに形があったと分かるときです。
+    とくに<span class="em">語彙</span>の数を見ていてください。使った言葉の種類の数は、
+    あなたが育てている解像度そのものです。</p>
+  </header>
+
+  <div class="log-grid">
+    <div class="card stack g20">
+      <p class="eyebrow-jp">あたらしい記入</p>
+      <div>
+        <label class="lab" for="wordIn">気持ち ——— ぴったりの一語</label>
+        <input type="text" id="wordIn" placeholder="所在ない、もどかしい、じーん…" autocomplete="off">
+      </div>
+      <div>
+        <label class="lab" for="famIn">家族</label>
+        <select id="famIn"></select>
+      </div>
+      <div>
+        <span class="lab">強さ</span>
+        <div class="dialer" id="intDial" role="group" aria-label="強さ 1から5"></div>
+        <div class="dial-scale"><span>1 ——— かすか</span><span>5 ——— 全部</span></div>
+      </div>
+      <div>
+        <label class="lab" for="bodyIn">身体のどこに</label>
+        <input type="text" id="bodyIn" placeholder="胸が詰まる、顔が熱い…" autocomplete="off">
+      </div>
+      <div>
+        <label class="lab" for="noteIn">何があったか ——— 一行</label>
+        <textarea id="noteIn" placeholder="同じ件で三通目のメール。"></textarea>
+      </div>
+      <div class="btn-row" style="margin-top:0">
+        <button class="btn btn-primary" id="saveEntry">記録する</button>
+        <button class="btn btn-quiet" id="exportBtn">書き出す</button>
+        <button class="btn btn-quiet" id="clearBtn">全部消す</button>
+      </div>
+      <div id="exportOut" hidden>
+        <label class="lab" for="exportTxt">CSV形式 ——— 表計算ソフトに貼り付けられます</label>
+        <textarea id="exportTxt" readonly rows="5" class="mono" style="font-size:12px"></textarea>
+      </div>
+      <p class="why" style="font-size:13.5px; color:var(--ink-3); line-height:1.8">
+      記録帳はこのブラウザの中だけに保存されます。どこにも送信されず、このページを開いた他の人にも
+      見えません ——— あなたがリンクを渡した相手にも。ブラウザのデータを消すと消えるので、
+      残したいときは書き出してください。</p>
+    </div>
+
+    <div>
+      <div class="tiles" id="tiles"></div>
+      <p class="eyebrow-jp" style="margin-top:12px; letter-spacing:.06em; color:var(--ink-3)">
+        <span style="letter-spacing:.14em">語彙の数</span>があなたの解像度です。
+        心地よさの割合ではなく、この数字が伸びていくことが上達です。</p>
+
+      <div class="card spark-card">
+        <div class="spark-head">
+          <p class="eyebrow-jp">強さ ——— 直近20回</p>
+          <span class="eyebrow-jp" id="sparkNote" style="letter-spacing:.04em"></span>
+        </div>
+        <div class="relpos" id="sparkWrap">
+          <svg class="spark" id="spark" viewBox="0 0 520 130" role="img" aria-label="直近の記入の強さの推移"></svg>
+          <div class="tip" id="sparkTip"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:1px">
+        <p class="eyebrow-jp">どの家族に多いか</p>
+        <div class="dist" id="dist"></div>
+      </div>
+
+      <div class="ledger" id="ledger" aria-live="polite"></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ══════════════════ PRESENCE ══════════════════ -->
+<section id="presence"><div class="wrap">
+  <header>
+    <p class="eyebrow">04 — BEING HERE</p>
+    <h2 class="sec-title">いまここにいる練習</h2>
+    <p class="sec-lede">「いまここにいる」には操作的な定義があり、だから練習できます ———
+    <span class="em">意図して、いまこの瞬間に、良し悪しを判定せずに注意を向けること</span>。
+    カバットジンの定義で、検証されてきたマインドフルネスのプログラムすべての土台です。
+    三つの部分があり、三つめが飛ばされます。見つけたものを判定し始めると、
+    気づくことが自分への査定に変わってしまいます。</p>
+  </header>
+
+  <div class="card measure" style="max-width:44em; margin-bottom:26px">
+    <p class="eyebrow-jp" style="margin-bottom:14px">あるがまま ——— これを効かせる一つの読みかえ</p>
+    <p style="color:var(--ink-2)">日本には、これをすでに言っていた流派があります。森田療法の
+    <span class="em">あるがまま</span>です。気持ちを消そうとするのをやめ、そこにあるままにしておいて、
+    それでも大事なことをする。不安を無くしてから動くのではなく、不安のまま動く。<br><br>
+    そしてもう一つ。いまここにいることは、途切れない一本の光ではありません。
+    <span class="em">帰ってくる</span>という行為です。心は必ずどこかへ行きます ———
+    それは失敗ではなく、装置の仕様です。行っていたと気づいて戻ってくるたび、
+    鍛えたい筋肉がちょうど一回動いています。十分坐って四十回戻った日は、
+    四回だった日よりよい練習です。三十六回多く気づいたのだから。
+    静けさではなく、帰った回数を数えてください。</p>
+  </div>
+
+  <div class="prac-grid">
+
+    <div class="card prac">
+      <div><span class="pill">5 MIN</span></div>
+      <h3>ため息の呼吸</h3>
+      <p class="how">鼻から二回吸います ——— 長く一回、そのあと短く足すもう一回。
+      それから口から、ゆっくり全部吐きます。吐くほうに重心を置いてください。輪に合わせて。</p>
+      <div class="pacer-wrap">
+        <svg class="pacer" id="pacerA" viewBox="0 0 160 160" aria-hidden="true"></svg>
+        <p class="pc-readout"><span class="pc-clock num" id="clkA">5:00</span><span class="pc-lab" id="phA">じゅんび</span></p>
+      </div>
+      <div class="prac-foot">
+        <button class="btn btn-primary" data-timer="A">はじめる</button>
+        <button class="btn btn-quiet" data-reset="A">戻す</button>
+      </div>
+      <p class="src">Balban ら, <em>Cell Reports Medicine</em>, 2023 ——— 一日五分を一か月続けたところ、
+      同じ試験の中でマインドフルネス瞑想より気分の改善と安静時呼吸数の低下が大きかった。
+      このページで最も強い短時間実践の証拠です。</p>
+    </div>
+
+    <div class="card prac">
+      <div><span class="pill">3 MIN</span></div>
+      <h3>三分間の呼吸空間</h3>
+      <p class="how">六十秒ずつ、三段。<b>広く：</b>いま何があるか ——— 考え、気持ち、感覚。名前をつける。
+      <b>狭く：</b>注意を全部、一点の呼吸へ。<b>また広く：</b>呼吸を含んだ身体全体を、まとめて。</p>
+      <div class="pacer-wrap">
+        <svg class="pacer" id="pacerB" viewBox="0 0 160 160" aria-hidden="true"></svg>
+        <p class="pc-readout"><span class="pc-clock num" id="clkB">3:00</span><span class="pc-lab" id="phB">じゅんび</span></p>
+      </div>
+      <div class="prac-foot">
+        <button class="btn btn-primary" data-timer="B">はじめる</button>
+        <button class="btn btn-quiet" data-reset="B">戻す</button>
+      </div>
+      <p class="src">マインドフルネス認知療法（Segal, Williams, Teasdale）の三分間呼吸空間。
+      MBCTは反復性うつ病の再発危険をおよそ半分にします ——— 心理的介入としては
+      証拠の厚いほうの一つです。</p>
+    </div>
+
+    <div class="card prac">
+      <div><span class="pill">10 MIN</span></div>
+      <h3>錨と、帰還</h3>
+      <p class="how">錨を一つ選びます ——— 鼻先の呼吸、床につく足、部屋の音。そこに置いておく。
+      さまよっていたと気づいたら、ボタンを押して戻ってくる。押すこと<span class="em">が</span>練習です。</p>
+      <div class="pacer-wrap">
+        <svg class="pacer" id="pacerC" viewBox="0 0 160 160" aria-hidden="true"></svg>
+        <p class="pc-readout"><span class="pc-clock num" id="clkC">10:00</span><span class="pc-lab" id="phC">じゅんび</span></p>
+      </div>
+      <div class="prac-foot">
+        <button class="btn btn-primary" data-timer="C">はじめる</button>
+        <button class="btn" id="retBtn">帰ってきた</button>
+        <button class="btn btn-quiet" data-reset="C">戻す</button>
+        <span class="retcount" id="retCount">0回</span>
+      </div>
+      <p class="src">集中系の瞑想。メタ分析では不安・抑うつ・痛みに中程度の効果、
+      それ以外のほとんどの主張については弱いか不明とされています
+      （Goyal ら, <em>JAMA Internal Medicine</em>, 2014）。役に立ちますが、魔法ではありません。</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:26px; max-width:44em">
+    <p class="eyebrow-jp" style="margin-bottom:14px">大きすぎて、一緒に坐れないとき</p>
+    <p style="color:var(--ink-2)">この練習は、立っていられる天気のためのものです。飲み込まれているときは順番が変わります ———
+    身体を落ち着けるのが先、名づけるのが次、決めるのが最後。頂点にいるあいだは、
+    交渉も返信も作戦も立てないでください。それをする部分が起動していません。
+    長く吐く呼吸を二分、足を床につける、冷たいものを手に持つ。それからダイヤルに戻ります。<br><br>
+    そして、飲み込まれたこと自体に優しくしてください。自分への慈しみ ———
+    自分の困りごとを、友人の困りごとと同じように扱うこと ———
+    は回復のよさを比較的よく予測しますし、自分を責めることは確実に事態を悪くします
+    （Neff、および MacBeth &amp; Gumley, 2012）。</p>
+  </div>
+</div></section>
+
+<!-- ══════════════════ TEACHING ══════════════════ -->
+<section id="teach"><div class="wrap">
+  <header>
+    <p class="eyebrow">05 — PASSING IT ON</p>
+    <h2 class="sec-title">人に手渡す</h2>
+    <p class="sec-lede">ここが難しいところです、はっきり言うと ———
+    いまここにいることは、教わるものではなく、移るものです。人は、とくに子どもは、
+    こちらの言葉より先にこちらの神経系を読み取り、落ち着いている人から落ち着きを借りて静まります。
+    つまり、これを教える最初の一手は、けっして授業ではありません。整った状態で着くことです。</p>
+  </header>
+
+  <div class="moves" style="margin-bottom:36px">
+    <div class="move">
+      <p class="mk">一つめ</p>
+      <h4>自分を先に整える</h4>
+      <p>何か言う前に、息をゆっくり一回吐いて、肩を落とす。共調整は生理的な現象です ———
+      落ち着いた大人そのものが介入になります。内側で身構えたまま落ち着いた演技をすると、
+      身体が正直な通路なので、危険として読み取られます。</p>
+    </div>
+    <div class="move">
+      <p class="mk">二つめ</p>
+      <h4>名づける。直さない</h4>
+      <p>推測を、疑問符をつけて差し出します ———「それ、さびしい感じ？ちがう？」———
+      そして訂正させてください。訂正されたら成功です。推測は招き、診断は閉じます。
+      代わりに名づけてしまうと、こちらが育てたい読み取りを外注する癖がつきます。</p>
+    </div>
+    <div class="move">
+      <p class="mk">三つめ</p>
+      <h4>沈黙を残す</h4>
+      <p>相手が止まってから、三つ数える。本当の一文は四つめに住んでいることが多い。
+      質の高い聞き方 ——— 注意を割らず、助言に急がない ———
+      は話す側の身構えを実際に下げ、自分の状況をより複雑に考えられるようにします。</p>
+    </div>
+    <div class="move">
+      <p class="mk">四つめ</p>
+      <h4>「ほかには？」を二回</h4>
+      <p>人はまず差し出してよい気持ちを出し、本当のものを三番目に出します。
+      「ほかには何が入ってる？」を二周するのに十五秒。それで、
+      提出用の答えの向こう側に行けます。</p>
+    </div>
+  </div>
+
+  <div class="scripts" style="margin-bottom:36px">
+
+    <div class="script">
+      <p class="who">小さい子と ・ 六歳、泣いている、理由を言わない</p>
+      <div class="line"><span class="sp">あなた</span><span class="sl">こっちに座ろう。どこにも行かないよ。<span class="stage">（座る。目の高さを合わせる。五秒、何も言わない）</span></span></div>
+      <div class="line"><span class="sp">子ども</span><span class="sl"><span class="stage">（まだ泣いている）</span></span></div>
+      <div class="line"><span class="sp">あなた</span><span class="sl">なんか、すごく大きいのが来てるね。大きい気持ちは、ここでは出していいよ。</span></div>
+      <div class="line"><span class="sp">あなた</span><span class="sl">どこにある？指でさしてみて。おなか？ むね？ のど？</span></div>
+      <div class="line"><span class="sp">子ども</span><span class="sl">ここ。<span class="stage">（胸）</span></span></div>
+      <div class="line"><span class="sp">あなた</span><span class="sl">むねか。石みたいに重い？ それとも鳥みたいに速い？</span></div>
+      <div class="line"><span class="sp">子ども</span><span class="sl">重い。</span></div>
+      <div class="line"><span class="sp">あなた</span><span class="sl">むねが重い。それはたぶん「かなしい」だね。かなしいで合ってる？ それとも別のやつ？</span></div>
+      <p class="gloss">言葉より先に身体を。六歳は、名札を貼るずっと前から指をさせます。
+      開いた質問ではなく、具体的な二択。そして差し出した言葉は本物の疑問で終わっています ———
+      「ちがう」と言う権利があります。これを一回やるたび、十六歳のときに使う語彙が増えていきます。</p>
+    </div>
+
+    <div class="script">
+      <p class="who">中学生と ・ 返事は一言、ドアはほぼ閉まっている</p>
+      <div class="line"><span class="sp">あなた</span><span class="sl">話さなくていいよ。ちょっとここに座ってる。<span class="stage">（座る。顔を見ない。何も言わない）</span></span></div>
+      <div class="line"><span class="sp">中学生</span><span class="sl">べつに。</span></div>
+      <div class="line"><span class="sp">あなた</span><span class="sl">うん。<span class="stage">（三秒）</span>「べつに」もちゃんとした答え。だいたい蓋だけどね。</span></div>
+      <div class="line"><span class="sp">中学生</span><span class="sl">学校のこと。</span></div>
+      <div class="line"><span class="sp">あなた</span><span class="sl">張ってる感じのいやなやつ？ それとも、ぺたんこになる感じ？</span></div>
+      <div class="line"><span class="sp">中学生</span><span class="sl">……ぺたんこ。</span></div>
+      <div class="line"><span class="sp">あなた</span><span class="sl">ぺたんこか。その下に、まだ何かある？</span></div>
+      <div class="line"><span class="sp">中学生</span><span class="sl">わかんない。行かなくても誰も気づかない感じ。</span></div>
+      <div class="line"><span class="sp">あなた</span><span class="sl">それは、さびしいね。そんなことないよって言うつもりはない。本当のほうを言ってくれてありがとう。</span></div>
+      <p class="gloss">「張ってる／ぺたんこ」は第二段のつまみです ——— 名札の前にエネルギーを聞く。
+      「どんな気持ち？」では何も出てこない相手が、これには答えます。
+      最後にしていないことに注目してください ——— 励ましも、反証も、解決もしていない。
+      気持ちを否定することが、次のものを持ってこなくなる理由です。あとで何をするかは言えばいい。
+      いまは、ただそこにいる。</p>
+    </div>
+
+    <div class="script">
+      <p class="who">同僚と ・ 職場で、渦の途中で、こちらの席まで来た</p>
+      <div class="line"><span class="sp">相手</span><span class="sl">すみません、いま少しいいですか。もう全部崩れてて、どこから手をつければいいのかも……</span></div>
+      <div class="line"><span class="sp">あなた</span><span class="sl">十分あります。その十分、ほかのことはしません。<span class="stage">（ノートパソコンを閉じる。見えるように）</span></span></div>
+      <div class="line"><span class="sp">相手</span><span class="sl"><span class="stage">（七分ぶん）</span></span></div>
+      <div class="line"><span class="sp">あなた</span><span class="sl">ほかには、何が入っていますか。</span></div>
+      <div class="line"><span class="sp">相手</span><span class="sl">正直に言うと……恥ずかしいんだと思います。六月の時点で気づくべきでした。</span></div>
+      <div class="line"><span class="sp">あなた</span><span class="sl">それですね。締切より、そっちのほうが重い荷物です。<br>いま必要なのは、一緒に考えることですか。それとも、聞いている人ですか。どちらでも。</span></div>
+      <p class="gloss">ノートパソコンを閉じる動作が、どんな一文よりも働いています ———
+      注意は、見えないと数に入りません。「ほかには」が、
+      <span class="em">混乱</span>から<span class="em">恥ずかしい</span>へ連れていきました。
+      渦を回していたのは後者です。そして最後の質問は、大人に対してできるいちばん敬意のある質問です ———
+      望まれていない助言のほとんどは、話を聞いてほしくて来た人に渡されています。</p>
+    </div>
+  </div>
+
+  <h3 class="sec-title" style="font-size:26px; margin-bottom:10px">これを台無しにする四つ</h3>
+  <p class="sec-lede" style="margin-bottom:28px">四つとも善意です。そして四つとも、
+  「あなたの気持ちは私にとって困りごとだった」と教えてしまいます。</p>
+  <div class="donts" style="margin-bottom:40px">
+    <div class="dont">
+      <p class="bad">「がんばって」</p>
+      <p class="why">前に進ませる言葉は、いまいる場所を認めない言葉でもあります。
+      まだ立ち上がる段ではないときに渡されると、休む許可を取り上げます。</p>
+      <p class="instead"><b>かわりに</b>「それは相当だね。もう少し聞かせて」</p>
+    </div>
+    <div class="dont">
+      <p class="bad">「気にしすぎだよ」</p>
+      <p class="why">感じ方の大きさが間違っているという判定です。
+      たいてい相手は納得せず、ただ報告をやめます。</p>
+      <p class="instead"><b>かわりに</b>「そう感じるの、分かる気がする。どこがいちばん重い？」</p>
+    </div>
+    <div class="dont">
+      <p class="bad">「もっと大変な人もいるよ」</p>
+      <p class="why">比較は口をふさぐ手です。話し合っているのが
+      「あなたの気持ちの大きさが妥当かどうか」に入れ替わってしまいます。</p>
+      <p class="instead"><b>かわりに</b>「いま、あなたのことを聞きたい」</p>
+    </div>
+    <div class="dont">
+      <p class="bad">「じゃあ順番に、今の気持ちを言ってね」</p>
+      <p class="why">言わせる決まりは感情教育ではなく、従順さの練習です。
+      そして口の重い子に、その場で受けのいい気持ちを作る技術を教えます。</p>
+      <p class="instead"><b>かわりに</b>ダイヤルを置いておく。自分が先に一つ言う。「パス」を認める。</p>
+    </div>
+  </div>
+
+  <div class="card ritual" style="max-width:46em">
+    <p class="eyebrow-jp" style="margin-bottom:14px">教室・グループ・食卓のための九十秒</p>
+    <p style="margin-bottom:18px">毎日、同じ時間に九十秒。効いているのはほとんど「毎日同じ」のほうで、
+    中身より、何も起きていない日にもやっていることが大事です。頭に置いておく枠は
+    ブラケットのものが使いやすい ——— 育てたいのは
+    <span class="em">気持ちの科学者</span>、つまりこれは何で何を指しているのかに興味がある人で、
+    <span class="em">気持ちの裁判官</span>、つまり許される気持ちと許されない気持ちに分類する人ではありません。</p>
+    <div class="stack g10">
+      <p><span class="t">0:00</span> 　全員、身体のどこにあるか探す。声は出さない。まだ言葉にしない。</p>
+      <p><span class="t">0:20</span> 　二つのつまみを指で。元気は上か下か、心地はよいかよくないか。</p>
+      <p><span class="t">0:40</span> 　一人一語、順に。「パス」は完全な答え。自分が先に、そして正直に ———
+      いつも「元気」しか言わない大人は、その場の本当の規則を全員に教えています。</p>
+      <p><span class="t">1:10</span> 　誰の言葉にも講評をつけない。ほめるのも含めて ———
+      「いい発表」をほめると、それは発表になります。ただ「ありがとう」。そして次へ。</p>
+    </div>
+    <p class="src" style="margin-top:20px; font-size:13.5px; color:var(--ink-3)">
+    一つ断っておくと、学校での社会性・情動の学習プログラムは平均して本物の効果を示しますが、
+    効果量は小から中で、大人が設計どおりに運用するかに大きく左右されます。
+    この儀式が効くのは、感動的だからではなく、退屈なほど一貫しているからです。</p>
+  </div>
+</div></section>
+
+<!-- ══════════════════ EVIDENCE ══════════════════ -->
+<section id="evidence"><div class="wrap">
+  <header>
+    <p class="eyebrow">06 — THE EVIDENCE</p>
+    <h2 class="sec-title">根拠について、正直なところ</h2>
+    <p class="sec-lede">それぞれの考えが、どれくらいの重さを支えられるかで三段に分けました。
+    三段目は無用ということではありません ——— 臨床の実践は証拠より先を行くのが常です ———
+    ただ、自分がどの段の上に立っているかは知っておくべきです。とくに、誰かに教える前には。</p>
+  </header>
+
+  <div class="tiers">
+    <div class="tier">
+      <h3><span class="grade" style="background:var(--f3)"></span>よく支えられている</h3>
+      <ul>
+        <li><p class="claim">気持ちを言葉にすると、脳の脅威反応が小さくなる。</p>
+          <p class="cite">Lieberman ら (2007), <em>Psychological Science</em> ——— 感情ラベリングにより扁桃体の活動が低下し、
+          右腹側前頭前野の活動が上昇。Torre &amp; Lieberman (2018), <em>Emotion Review</em> が暗黙の感情調整として整理し、
+          効果は控えめであると述べています。</p></li>
+        <li><p class="claim">気持ちを細かく言い分ける人は、気持ちとの付き合いがうまい。</p>
+          <p class="cite">感情の粒度・分化：Barrett ら (2001)、Kashdan, Barrett &amp; McKnight (2015),
+          <em>Current Directions in Psychological Science</em>。粒度の低さは、飲酒量の多さ、
+          挑発後の攻撃性、複数の臨床群での経過の悪さと関連します。</p></li>
+        <li><p class="claim">状況の捉えなおしは効く。押し込めるのは効かない。</p>
+          <p class="cite">グロスのプロセスモデル (1998; 2015, <em>Psychological Inquiry</em>)。
+          表出抑制は外に出る表情を減らす一方で生理的興奮を残すか高め、記憶を悪くします。
+          再評価は体験そのものを減らします。</p></li>
+        <li><p class="claim">マインドフルネス認知療法はうつ病の再発をはっきり減らす。</p>
+          <p class="cite">Kuyken ら (2016), <em>JAMA Psychiatry</em> ——— 個人データのメタ分析。
+          より広いマインドフルネスの主張は弱く、Goyal ら (2014), <em>JAMA Internal Medicine</em> は
+          不安・抑うつ・痛みについて中程度、それ以外の多くについて低いか不十分としています。</p></li>
+        <li><p class="claim">吐く息を長くする短い呼吸法は気分を改善する。</p>
+          <p class="cite">Balban ら (2023), <em>Cell Reports Medicine</em> ——— 一日五分のため息呼吸を一か月、
+          ポジティブ感情と呼吸数でマインドフルネス瞑想を上回りました。無作為化されていますが、
+          標本の小さい単一の試験です。</p></li>
+        <li><p class="claim">自分への慈しみは心の健康を、自己批判はその逆を予測する。</p>
+          <p class="cite">MacBeth &amp; Gumley (2012), <em>Clinical Psychology Review</em> ———
+          20標本で抑うつ・不安・ストレスと大きな逆相関。Neff &amp; Germer のプログラムには
+          無作為化された支持があります。</p></li>
+      </ul>
+    </div>
+
+    <div class="tier">
+      <h3><span class="grade" style="background:var(--f1)"></span>有望だが、留保がある</h3>
+      <ul>
+        <li><p class="claim">感情は二軸に収まる ——— 心地よさと、活性の高さ。</p>
+          <p class="cite">Russell (1980), <em>Journal of Personality and Social Psychology</em>。
+          人が感情を<span class="em">報告する</span>仕方の記述としては堅牢ですが、
+          背後に二つの機構があることの証明ではありません。体験の地図です。</p></li>
+        <li><p class="claim">文化によって、どの気持ちが前に出るかが変わる。</p>
+          <p class="cite">Markus &amp; Kitayama (1991) の自己観；Kitayama, Mesquita &amp; Karasawa (2006) ———
+          日本の回答者は社会的につながる感情（親近感、申し訳なさ）をより多く報告し、
+          北米の回答者は切り離す感情（誇り、怒り）をより多く報告しました。
+          このダイヤルに<span class="em">気まずい</span>や<span class="em">申し訳ない</span>が
+          入っているのはこのためです ——— 訳語ではなく、必要な語です。</p></li>
+        <li><p class="claim">「望ましい気分」も文化で変わる。</p>
+          <p class="cite">Tsai の ideal affect の研究 (2007 ほか) ———
+          東アジアの回答者は落ち着いた心地よさ（穏やか、安らか）を、
+          北米の回答者は高ぶった心地よさ（わくわく、興奮）をより望ましいとします。
+          ダイヤルの明るい側を読むときに関係します ——— 「明るく静か」の区画は、
+          英語圏向けの同じ道具より重みがあるかもしれません。</p></li>
+        <li><p class="claim">自分の身体の信号を読めることが、名づけの正確さを支える。</p>
+          <p class="cite">内受容感覚の研究 ——— Critchley &amp; Garfinkel、Mehling の MAIA 尺度。
+          方向としてはよく支えられていますが、測定法に論争があり、心拍検出課題は
+          日常の感情スキルとゆるく相関するだけです。</p></li>
+        <li><p class="claim">よく聞いてもらうと、人は身構えを解き、考えが細やかになる。</p>
+          <p class="cite">Itzchakov &amp; Kluger の質の高い傾聴に関する実験；
+          Rogers (1957) の共感的理解と無条件の肯定的関心。
+          多くは短期の実験室・現場効果です。</p></li>
+        <li><p class="claim">学校で情動のスキルを教えると、スキルと行動が改善する。</p>
+          <p class="cite">Durlak ら (2011)、Taylor ら (2017) のメタ分析；
+          ブラケットの RULER と『Permission to Feel』(2019)。
+          効果量は小から中で、実施の忠実度に強く依存します。</p></li>
+      </ul>
+    </div>
+
+    <div class="tier">
+      <h3><span class="grade" style="background:var(--f4)"></span>実践の知恵 ——— 証拠は薄いか、議論がある</h3>
+      <ul>
+        <li><p class="claim">気持ちの輪、そのもの。</p>
+          <p class="cite">Willcox (1982), <em>Transactional Analysis Journal</em> ———
+          六家族からなる原型。臨床的に有用な語彙の足場であって、検証された尺度でも、
+          脳の独立した仕組みの地図でもありません。どの言葉がどの家族に属するかは取り決めであり、
+          構成主義の立場（Barrett）は、感情のカテゴリーは見つかるのではなく作られると論じます。
+          このダイヤルの語彙は英語版の訳ではなく、日本語で使われている言葉から組み直したものです ———
+          そのぶん、二つのページは正確には対応しません。</p></li>
+        <li><p class="claim">あるがまま ——— 森田療法。</p>
+          <p class="cite">森田正馬に始まる日本の流派で、症状を消そうとせず、
+          あるがままにして目的本位に行動することを勧めます。考え方は現代の
+          アクセプタンス＆コミットメント・セラピーと重なりますが、
+          対照試験の蓄積はACTよりずっと薄く、多くは小規模研究です。
+          考え方として使ってください。証拠として引かないでください。</p></li>
+        <li><p class="claim">感情ごとの身体の地図。</p>
+          <p class="cite">Nummenmaa ら (2014) は感情ごとに一貫した身体感覚の分布を報告しましたが、
+          一対一の信頼できる指紋はありません。ここに書いてある身体の記述は、
+          自分で気づくための手がかりであって、対応表ではありません。</p></li>
+        <li><p class="claim">グラウンディングの手順や四段階の枠組み（5-4-3-2-1、RAIN、フォーカシング）。</p>
+          <p class="cite">広く使われ、広く役に立っていますが、単独ではほとんど検証されていません。
+          ジェンドリンのフォーカシングには小さな支持文献があり、
+          RAIN や感覚グラウンディングは臨床家が作った経験則です。使ってください。
+          証拠としては引かないでください。</p></li>
+        <li><p class="claim">ポリヴェーガル理論。</p>
+          <p class="cite">このページからは意図的に外しました。
+          その用語はウェルネスの文章のいたるところにありますが、
+          中心的な生理学の主張には実質的な批判があります
+          （Grossman, 2023, <em>Biological Psychology</em>）。
+          ここに載せた実践は、この理論なしに、それぞれの試験の証拠で立っています。</p></li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+</main>
+
+<footer>
+  <div class="foot-in">
+    <p>学習のための道具として作られました。診断も治療もしませんし、
+    免許を持つ専門家によるケアの代わりにもなりません。そして、あなたについて何も知りません ———
+    記録帳はあなたのブラウザの中だけにあります。
+    続く気分の落ち込み、生活を狭めていく不安、どうしても下に潜れない気持ちは、
+    どれも心理士や医師に持っていってよいものです。自分をもっと分かりたいと思うことは、
+    症状ではありません。</p>
+    <p class="eyebrow-jp">STN 01 ・ 天気を読む ・ 記録をつける ・ 窓辺にいる</p>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+/* ══════════════════════════ 語彙 ══════════════════════════
+   英語版の訳ではありません。日本語で実際に使われている言葉から
+   組み直したもので、擬態語（もやもや、そわそわ、ぐるぐる）と、
+   英語に対応語のない語（切ない、悔しい、なつかしい、甘え、
+   気まずい、申し訳ない、我慢）を一級の語彙として含みます。
+   家族の並びはラッセルの円環モデルに沿って時計回り。       */
+
+const FAMILIES = [
+  { key:"ureshii", name:"嬉しい", yomi:"うれしい", v:"心地よい", a:"高い",
+    tone:"明るくて、エネルギーがあって、外に開いている。世界に近づきたくなる感じ。",
+    mids:[
+      { name:"満足", yomi:"まんぞく",
+        def:"いま、足りている。何も欠けていない。これから来る何かを求める「わくわく」とちがって静かなので、いちばん見落とされる気持ちです。",
+        body:"肩が下がって、息がゆっくり。胸のあたりがあたたかい。",
+        need:"過ぎる前に気づかれること。満足は静かなので、記録されないまま消えます。",
+        ask:"いま「足りている」のは何ですか。ふだんなら見過ごしてしまうもの。",
+        nubs:[["ほっと","ほっと"],["のんびり","のんびり"],["しみじみ","しみじみ"]] },
+      { name:"わくわく", yomi:"わくわく",
+        def:"これから来るものに向いた、心地よい高ぶり。身体の反応は不安とほとんど同じで、ちがいは「何が起きると思っているか」だけです。",
+        body:"心拍が速い。手がざわざわする。じっと座っているのが本当に難しい。",
+        need:"この電気を置く場所と、話す相手。",
+        ask:"何に向かっていますか。そして、その一部はじつは緊張ではありませんか。",
+        nubs:[["うきうき","うきうき"],["はやる","はやる"],["たのしみ","たのしみ"]] },
+      { name:"楽しい", yomi:"たのしい",
+        def:"目的のついていないエネルギー。評価されている場でいちばん早く消えるものでもあります。",
+        body:"顔が軽い。動きたくなる。息が浅くて速い。",
+        need:"許可と、たいていは相手。遊びは採点されると死にます。",
+        ask:"誰も点をつけないと分かっていたら、いま何をしますか。",
+        nubs:[["のびのび","のびのび"],["けらけら","けらけら"],["ごきげん","ごきげん"]] },
+      { name:"希望", yomi:"きぼう",
+        def:"よい結果があり得ると持っていること。来ると分かっているわけではない。静かに無防備でもあります ——— 希望は、裏切られうる唯一のものだから。",
+        body:"胸が開く。目線が上がる。少し前に傾く。",
+        need:"具体的な次の一歩。そうしないと希望は抽象の上で暮らすことになります。",
+        ask:"何を望んでいますか。そして、その最初の兆しはどんな形ですか。",
+        nubs:[["楽しみ","たのしみ"],["前向き","まえむき"],["待ち遠しい","まちどおしい"]] } ] },
+
+  { key:"chikara", name:"力強い", yomi:"ちからづよい", v:"心地よい", a:"高い",
+    tone:"自分が動かしている側にいる。されている側ではない感じ。",
+    mids:[
+      { name:"自信", yomi:"じしん",
+        def:"この件について自分の力を信じられている状態。自分の価値についての全体的な主張ではないので、うまくいかない日にも生き残ります。",
+        body:"両足に均等に重さがのる。声が安定する。あごがゆるい。",
+        need:"使われること。行き場のない自信は、そのうち落ち着かなさに変わります。",
+        ask:"ここで、具体的に何ができる人ですか。",
+        nubs:[["落ち着き","おちつき"],["できそう","できそう"],["堂々","どうどう"]] },
+      { name:"誇り", yomi:"ほこり",
+        def:"自分の基準が満たされた感じ。ほめられることとは別物です ——— ほめられても何も感じないことがあり、誰も見ていなくてもこれが起きることがある。",
+        body:"胸が持ち上がる。背が伸びる。小さく、勝手に笑ってしまう。",
+        need:"判断を信頼できる誰か一人に、見ていてもらうこと。",
+        ask:"これに、ほかの誰にも見えない代償がありましたか。",
+        nubs:[["やりきった","やりきった"],["報われた","むくわれた"],["誇らしい","ほこらしい"]] },
+      { name:"認められた", yomi:"みとめられた",
+        def:"自分が誰かにとって意味があると分かること。これは他人に依存する気持ちで、だからこそ失ったときにあれほど痛みます。",
+        body:"顔があたたかい。のどがゆるむ。目を合わせるのが楽になる。",
+        need:"声に出して返すこと。名前をつけて返すと、それは繰り返されるようになります。",
+        ask:"これをくれたのは誰ですか。その人は、そうしたと知っていますか。",
+        nubs:[["ありがたい","ありがたい"],["温かい","あたたかい"],["居場所","いばしょ"]] },
+      { name:"決意", yomi:"けつい",
+        def:"大事なことのまわりに整ったエネルギー。力強さのいちばん長持ちする形です。観客を必要としないので。",
+        body:"視野が狭くなる。前に圧がかかる。時間がなくなる。",
+        need:"邪魔されないこと。",
+        ask:"これは、何のためにやっている一つですか。",
+        nubs:[["集中","しゅうちゅう"],["まっすぐ","まっすぐ"],["覚悟","かくご"]] } ] },
+
+  { key:"odayaka", name:"穏やか", yomi:"おだやか", v:"心地よい", a:"低い",
+    tone:"心地よくて、エネルギーは低い。いま何も変えなくていい。",
+    mids:[
+      { name:"安心", yomi:"あんしん",
+        def:"警戒が下がった状態。ここは安全だという神経系の判断です ——— 判断なので、ときどき外れます。",
+        body:"肩が耳から離れる。まわりを見る速さが落ちる。姿勢が開く。",
+        need:"それに値すること。信頼は情報なので、相手の行いと照らし合わせてください。",
+        ask:"あなたの身体は、何を見て「ここは安全だ」と決めましたか。",
+        nubs:[["ゆるむ","ゆるむ"],["ほどける","ほどける"],["甘え","あまえ"]] },
+      { name:"愛おしい", yomi:"いとおしい",
+        def:"誰か特定の人に向かって外へ出ていくあたたかさ。向きがあることが、満足とのちがいです。",
+        body:"胸があたたかく満ちる。近づきたくなる。のどがやわらかい。",
+        need:"表に出ること。言われない愛情は、たいてい痛みに変わります。",
+        ask:"これは誰に向いていますか。言わないでいる理由は何ですか。",
+        nubs:[["やさしい","やさしい"],["守りたい","まもりたい"],["いとしい","いとしい"]] },
+      { name:"感謝", yomi:"かんしゃ",
+        def:"よいものが自分の外から来たと分かること。自分が誰かに支えられていると認めることを含むので、思ったより重たく感じることがあります。",
+        body:"胸がいい意味で詰まる。のどが締まる。ときどき涙。",
+        need:"実際の相手に届くこと。内側で感じているだけでは終わりません。",
+        ask:"自分の力で得たのではないものを、誰が、何がくれましたか。",
+        nubs:[["ありがたい","ありがたい"],["じーん","じーん"],["おかげさま","おかげさま"]] },
+      { name:"なつかしい", yomi:"なつかしい",
+        def:"もう戻らないものを、あたたかく思い出している状態。心地よさと寂しさの両方がある ——— 英語に一語の対応がないのはこのためで、悲しいの家族との境目に座っています。",
+        body:"胸のあたりがふわっと重い。視線が遠くなる。息が少し深くなる。",
+        need:"急いで通り過ぎないこと。誰かと分けられるとよく効きます。",
+        ask:"それは何を、あなたにくれていましたか。",
+        nubs:[["しんみり","しんみり"],["恋しい","こいしい"],["ほのぼの","ほのぼの"]] } ] },
+
+  { key:"kanashii", name:"悲しい", yomi:"かなしい", v:"心地よくない", a:"低い",
+    tone:"何かが失われた、あるいは届かない。エネルギーが下がっていく。",
+    mids:[
+      { name:"さびしい", yomi:"さびしい",
+        def:"いまあるつながりと、必要なつながりのあいだの隙間。ひとりでいることとは別で、人がいっぱいの部屋でも起きます。",
+        body:"胸が空洞になる。手足が重い。内側へ丸まりたくなる。",
+        need:"接触。大勢より、本物のやりとり一つのほうが効きます。",
+        ask:"いま、ドアから入ってきてほしいのは誰ですか。",
+        nubs:[["心細い","こころぼそい"],["所在ない","しょざいない"],["うつろ","うつろ"]] },
+      { name:"切ない", yomi:"せつない",
+        def:"胸が締めつけられるような、行き場のない気持ち。大事だからこそ痛むもので、解決すべき問題ではありません。日本語にしかない語のひとつです。",
+        body:"波で来る ——— 胸とのどが締まって、ゆるむ。予測がつかない。",
+        need:"時間と、そばにいる人。修理でも、前向きな見方でもありません。",
+        ask:"何が足りないのですか。それは、あなたに何をくれていましたか。",
+        nubs:[["胸が痛い","むねがいたい"],["やるせない","やるせない"],["こみあげる","こみあげる"]] },
+      { name:"恥ずかしい", yomi:"はずかしい",
+        def:"「自分がだめだ」。罪悪感が「したことがだめだった」と言うのに対して。罪悪感は修復へ向かわせ、恥は隠れへ向かわせます。このちがいが決定的です。",
+        body:"顔と首が熱い。目線が落ちる。物理的に小さくなりたい。",
+        need:"それでも見られること。恥は、ひるまずに受け取られると生き残れません。",
+        ask:"これは、したことについてですか。それとも自分がどういう人間かについてですか。「したこと」版の文はどうなりますか。",
+        nubs:[["情けない","なさけない"],["消えたい","きえたい"],["申し訳ない","もうしわけない"]] },
+      { name:"無気力", yomi:"むきりょく",
+        def:"枯れ切っている状態で、なまけではありません。名前がつく前のうつが、内側からはこう感じられることも多い。",
+        body:"全部が重い。食べ物も興味も味がしない。話すのが遅い。",
+        need:"本当の休息。そして数週間続いているなら、専門家の目。",
+        ask:"最後に休めたと感じたのはいつですか。それから何が引き出し続けていますか。",
+        nubs:[["だるい","だるい"],["空っぽ","からっぽ"],["ぐったり","ぐったり"]] } ] },
+
+  { key:"osore", name:"恐れ", yomi:"おそれ", v:"心地よくない", a:"高い",
+    tone:"何かに傷つけられそうで、身構えている。エネルギーは高い。",
+    mids:[
+      { name:"不安", yomi:"ふあん",
+        def:"的のない恐れ。頭がまだ特定していない脅威に向けて、身体が先に準備してしまった状態です。",
+        body:"胸が締まる。呼吸が浅く上のほうで動く。手が落ち着かない。目が周りを探す。",
+        need:"具体化。名前のついた恐れは、ついていない恐れより小さくなります。",
+        ask:"文を完成させてください ———「＿＿＿が起きるのがこわい。そうしたら、＿＿＿」",
+        nubs:[["もやもや","もやもや"],["そわそわ","そわそわ"],["どきどき","どきどき"]] },
+      { name:"自信がない", yomi:"じしんがない",
+        def:"状況ではなく、自分の力量に向いた恐れ。こわいのは「ばれること」です。",
+        body:"のどが締まる。肩が上がる。言うことを頭の中で何度も練習している。",
+        need:"安心させる言葉ではなく、証拠。安心は一時間でなくなります。",
+        ask:"何がばれるのがこわいですか。それは ——— 本当ですか。",
+        nubs:[["気後れ","きおくれ"],["気まずい","きまずい"],["びくびく","びくびく"]] },
+      { name:"混乱", yomi:"こんらん",
+        def:"求められる量が容量を超えて、何も処理されなくなった状態。固まるのは受信箱が満杯なだけで、意志の弱さではありません。",
+        body:"頭がざわざわする。胸が締まる。考えを終えられない。部屋を出たくなる。",
+        need:"減らすこと。一つだけ、紙に書いて、頭の外へ。",
+        ask:"次の一時間で一つだけしかできないなら、どれですか。",
+        nubs:[["ぐるぐる","ぐるぐる"],["頭が真っ白","あたまがまっしろ"],["動けない","うごけない"]] },
+      { name:"警戒", yomi:"けいかい",
+        def:"指させる相手のいる恐れ。行き先のない不安より、鋭くて、ずっと使える情報です。",
+        body:"あごが締まる。筋肉に力が入る。視野が狭い。とても目が覚めている。",
+        need:"まず安全、決断はあと。飲み込まれながら作戦を立てないこと。",
+        ask:"具体的な脅威は何ですか。次の十分で本当に安全を増やすのは何ですか。",
+        nubs:[["身構える","みがまえる"],["ひやり","ひやり"],["逃げたい","にげたい"]] } ] },
+
+  { key:"ikari", name:"怒り", yomi:"いかり", v:"心地よくない", a:"高い",
+    tone:"境界線か、大事にしているものが踏まれた。エネルギーは高い。",
+    mids:[
+      { name:"もどかしい", yomi:"もどかしい",
+        def:"やりたい方向への動きが止められている状態。怒りのいちばんよくある、いちばん危なくない形です。",
+        body:"手とあごに力が入る。息を鋭く吐く。何かを押したくなる。",
+        need:"別の道 ——— あるいは、いま閉じた道を惜しむこと。",
+        ask:"うまくいっていないのは、何をしようとしているときですか。ふさいでいるのは外ですか、自分の中ですか。",
+        nubs:[["いらいら","いらいら"],["じれったい","じれったい"],["空回り","からまわり"]] },
+      { name:"悔しい", yomi:"くやしい",
+        def:"負けや届かなさに、自分への怒りが混ざった気持ち。英語に一語の対応がありません ——— 「悔しい」は次に進む燃料にもなるので、消すべきものとは限りません。",
+        body:"奥歯を噛む。目のうしろが熱い。手が握られる。涙が出ることもある。",
+        need:"認められること、そしてやり直す場所。慰めよりも、もう一回。",
+        ask:"届かなかったのは何ですか。もう一度やるとしたら、どこからですか。",
+        nubs:[["歯がゆい","はがゆい"],["ふがいない","ふがいない"],["見返したい","みかえしたい"]] },
+      { name:"傷ついた", yomi:"きずついた",
+        def:"怒りのやわらかい出発点で、ほとんどの場合その下にあります。傷が見つかると、怒りはずっと正確になります。",
+        body:"胸骨のうしろが痛む。のどが締まる。涙が近い。",
+        need:"引き起こした相手からの承認。それが無理なら、自分からの承認。",
+        ask:"その人に何を期待していて、もらえませんでしたか。",
+        nubs:[["裏切られた","うらぎられた"],["痛い","いたい"],["恨めしい","うらめしい"]] },
+      { name:"激怒", yomi:"げきど",
+        def:"大事なものを守るための全開。自分の価値についての優れた情報であり、行動を選ぶことにかけては最悪です。",
+        body:"熱い。心臓が強く打つ。耳で音が大きい。手が動きたがる。",
+        need:"壊さずに放つこと。決断はあとで。",
+        ask:"踏まれたのは、あなたのどの価値ですか。次の十分で動いたら、何を後悔しますか。",
+        nubs:[["かっと","かっと"],["腹が立つ","はらがたつ"],["我慢の限界","がまんのげんかい"]] } ] },
+];
+
+const BODY_CHIPS = ["胸が詰まる","おなかが空っぽ","のどが締まる","あごを噛んでいる","肩が上がっている",
+  "手がざわざわ","顔が熱い","手足が重い","息が浅い","じっとできない","目のうしろ","どこか分からない"];
+
+const QUADS = [
+  { a:"高い", v:"心地よい",     t:"張っている ・ 心地よい",   b:"<b>嬉しい</b> か <b>力強い</b>", fams:[0,1] },
+  { a:"高い", v:"心地よくない", t:"張っている ・ つらい",     b:"<b>恐れ</b> か <b>怒り</b>",     fams:[4,5] },
+  { a:"低い", v:"心地よい",     t:"落ちている ・ 心地よい",   b:"<b>穏やか</b>",                  fams:[2] },
+  { a:"低い", v:"心地よくない", t:"落ちている ・ つらい",     b:"<b>悲しい</b>",                  fams:[3] },
+];
+
+/* ══════════════════════════ HELPERS ══════════════════════════ */
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const SVGNS = "http://www.w3.org/2000/svg";
+const el = (n,a={},kids=[])=>{ const e=document.createElementNS(SVGNS,n);
+  for(const k in a) e.setAttribute(k,a[k]); kids.forEach(c=>e.appendChild(c)); return e; };
+const rad = d => d*Math.PI/180;
+const famVar = i => `var(--f${i+1})`;
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let toastT;
+function toast(msg){
+  const t=$("#toast"); t.textContent=msg; t.dataset.on="1";
+  clearTimeout(toastT); toastT=setTimeout(()=>t.dataset.on="0",2800);
+}
+
+/* ══════════════════════════ ダイヤル ══════════════════════════ */
+const C=400, HUB=92, R1=[100,178], R2=[184,270], R3=[276,368], TICK=[374,384], PAD=0.7;
+const MID_SLOT=16.5, NUB_SLOT=18;
+
+function sector(r0,r1,a0,a1){
+  const pt=(r,a)=>[ (C+r*Math.cos(rad(a))).toFixed(2), (C+r*Math.sin(rad(a))).toFixed(2) ];
+  const [x0,y0]=pt(r1,a0), [x1,y1]=pt(r1,a1), [x2,y2]=pt(r0,a1), [x3,y3]=pt(r0,a0);
+  const laf = (a1-a0) > 180 ? 1 : 0;
+  return `M${x0} ${y0}A${r1} ${r1} 0 ${laf} 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${laf} 0 ${x3} ${y3}Z`;
+}
+
+/** Japanese sets vertically on an instrument face: one upright glyph per step,
+    stacked along the radius. Rotated horizontal text is illegible in CJK.
+
+    Order matters. A radial line is read along whichever axis it mostly lies on —
+    left-to-right when it is mostly horizontal, top-to-bottom when mostly vertical.
+    Stacking blindly outward therefore reverses every word on the left of the dial
+    (不安 → 安不) and above the hub. So pick the direction per wedge: run the glyphs
+    inward when outward would point left on a horizontal run, or up on a vertical one. */
+function stackLabel(text, cls, rIn, midA, slot, inset){
+  const g = el("g",{class:`wlabel ${cls}`});
+  const a = rad(midA), chars=[...text], n=chars.length;
+  const cx=Math.cos(a), sy=Math.sin(a);
+  const mostlyHorizontal = Math.abs(cx) > Math.abs(sy);
+  const flip = mostlyHorizontal ? cx < 0 : sy < 0;
+  chars.forEach((ch,i)=>{
+    const step = flip ? (n-1-i) : i;
+    const r = rIn + inset + step*slot;
+    const t = el("text",{ x:(C+r*Math.cos(a)).toFixed(1), y:(C+r*Math.sin(a)).toFixed(1) });
+    t.textContent = ch; g.appendChild(t);
+  });
+  return g;
+}
+
+const svg = $("#dialSvg");
+let sel = { fi:null, mi:null, ni:null };
+let highlightFams = [];
+
+function buildDial(){
+  svg.textContent = "";
+
+  const rim = el("g",{"aria-hidden":"true"});
+  for(let k=0;k<72;k++){
+    const a = -90 + k*5, major = k%12===0;
+    const r0 = major ? TICK[0]-4 : TICK[0], r1 = TICK[1];
+    rim.appendChild(el("line",{ class: major?"tick tick-major":"tick",
+      x1:(C+r0*Math.cos(rad(a))).toFixed(2), y1:(C+r0*Math.sin(rad(a))).toFixed(2),
+      x2:(C+r1*Math.cos(rad(a))).toFixed(2), y2:(C+r1*Math.sin(rad(a))).toFixed(2) }));
+  }
+  svg.appendChild(rim);
+
+  const gRings = el("g");
+  FAMILIES.forEach((F,fi)=>{
+    const fa0 = -90 + fi*60, fa1 = fa0 + 60;
+
+    /* core — horizontal at the centroid: these six are the anchors, so legibility wins */
+    const wCore = el("g",{ class:"wedge", "data-kind":"core", "data-fi":fi, tabindex:"0",
+      role:"button", "aria-label":`${F.name}（${F.yomi}）気持ちの家族`, style:`--c:${famVar(fi)}` });
+    wCore.appendChild(el("path",{class:"wseg", d:sector(R1[0],R1[1],fa0+PAD,fa1-PAD)}));
+    const cr=(R1[0]+R1[1])/2, ca=rad(fa0+30);
+    const cg = el("g",{class:"wlabel wl-core"});
+    const ct = el("text",{ x:(C+cr*Math.cos(ca)).toFixed(1), y:(C+cr*Math.sin(ca)).toFixed(1) });
+    ct.textContent = F.name; cg.appendChild(ct); wCore.appendChild(cg);
+    gRings.appendChild(wCore);
+
+    F.mids.forEach((M,mi)=>{
+      const ma0 = fa0 + mi*15;
+      const w = el("g",{ class:"wedge", "data-kind":"mid", "data-fi":fi, "data-mi":mi, tabindex:"0",
+        role:"button", "aria-label":`${M.name}（${M.yomi}）${F.name}の気持ち`, style:`--c:${famVar(fi)}` });
+      w.appendChild(el("path",{class:"wseg", d:sector(R2[0],R2[1],ma0+PAD,ma0+15-PAD)}));
+      w.appendChild(stackLabel(M.name,"wl-mid",R2[0],ma0+7.5,MID_SLOT,10));
+      gRings.appendChild(w);
+    });
+  });
+  svg.appendChild(gRings);
+
+  const guide=el("g",{"aria-hidden":"true"});
+  [R3[0],R3[1]].forEach(r=>guide.appendChild(
+    el("circle",{cx:C, cy:C, r, fill:"none", stroke:"var(--rule)", "stroke-width":"1"})));
+  svg.appendChild(guide);
+  svg.appendChild(el("g",{id:"nubRing"}));
+
+  const hub = el("g",{id:"hub","aria-hidden":"true"});
+  hub.appendChild(el("circle",{class:"hub-plate", cx:C, cy:C, r:HUB}));
+  hub.appendChild(el("circle",{class:"hub-plate", cx:C, cy:C, r:HUB-8, style:"fill:none"}));
+  hub.appendChild(el("text",{id:"hubTop",  class:"hub-sub",  x:C, y:C-42}));
+  hub.appendChild(el("text",{id:"hubWord", class:"hub-word", x:C, y:C+2, "font-size":"30"}));
+  hub.appendChild(el("text",{id:"hubSub",  class:"hub-sub",  x:C, y:C+40}));
+  svg.appendChild(hub);
+
+  paintDial();
+}
+
+function hubText(top,word,sub){
+  $("#hubTop").textContent=top; $("#hubSub").textContent=sub;
+  const w=$("#hubWord"), n=[...word].length;
+  w.setAttribute("font-size", n>6 ? 21 : n>5 ? 24 : n>4 ? 27 : n>3 ? 30 : 34);
+  w.textContent = word;
+}
+
+function paintDial(){
+  const narrowed = highlightFams.length > 0;
+  $$(".wedge",svg).forEach(w=>{
+    const fi=+w.dataset.fi, kind=w.dataset.kind;
+    const mi=w.dataset.mi!==undefined?+w.dataset.mi:null;
+    const on = (kind==="core" && sel.fi===fi && sel.mi===null) ||
+               (kind==="mid"  && sel.fi===fi && sel.mi===mi);
+    w.dataset.on  = on ? "1":"0";
+    w.dataset.dim = (narrowed && !highlightFams.includes(fi)) ? "1":"0";
+  });
+  drawNubRing();
+}
+
+function drawNubRing(){
+  const g=$("#nubRing"); g.textContent="";
+  if(sel.fi===null) return;
+  const F=FAMILIES[sel.fi], fa0 = -90 + sel.fi*60;
+  F.mids.forEach((M,mi)=>{
+    M.nubs.forEach(([word,yomi],ni)=>{
+      const a0 = fa0 + mi*15 + ni*5;
+      const quiet = sel.mi!==null && sel.mi!==mi;
+      const w = el("g",{ class:"wedge", "data-kind":"nub",
+        "data-fi":sel.fi, "data-mi":mi, "data-ni":ni, tabindex:"0", role:"button",
+        "aria-label":`${word}（${yomi}）${M.name}のより細かい言葉`,
+        style:`--c:${famVar(sel.fi)}`,
+        "data-on": (sel.mi===mi && sel.ni===ni) ? "1":"0",
+        "data-dim": quiet ? "1":"0" });
+      w.appendChild(el("path",{class:"wseg", d:sector(R3[0],R3[1],a0+0.35,a0+4.65)}));
+      w.appendChild(stackLabel(word,"wl-nub",R3[0],a0+2.5,NUB_SLOT,11));
+      g.appendChild(w);
+    });
+  });
+}
+
+function select(fi,mi,ni){
+  highlightFams = [];
+  sel = { fi, mi:(mi??null), ni:(ni??null) };
+  paintDial(); renderReadout();
+}
+
+function onWedge(e){
+  const w = e.target.closest(".wedge"); if(!w) return;
+  const fi=+w.dataset.fi;
+  if(w.dataset.kind==="core") select(fi,null,null);
+  else if(w.dataset.kind==="mid") select(fi,+w.dataset.mi,null);
+  else select(fi,+w.dataset.mi,+w.dataset.ni);
+}
+svg.addEventListener("click",onWedge);
+svg.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); onWedge(e); } });
+
+function renderReadout(){
+  const chip=$("#roChip"), chipT=$("#roChipTxt"), kana=$("#roKana"),
+        name=$("#roName"), body=$("#roBody"), acts=$("#roActions");
+
+  if(sel.fi===null){
+    chip.style.setProperty("--c","var(--accent)");
+    chipT.textContent="まだ選ばれていません"; kana.textContent=""; name.textContent="どこから始めても";
+    body.innerHTML = `<p style="color:var(--ink-2)">内側の輪から家族を一つ押してください。
+      だいたいの場所が分かっているなら、中の輪へ直接どうぞ。入口に正解はありません ———
+      これは検査ではなく、語彙です。</p>
+      <p style="color:var(--ink-3); font-size:15px; margin-top:16px">どこから始めるか分からないときは、
+      <a href="#name">五つの段</a>を先に。身体から始まるので、すでにその中にいるときは、
+      言葉の一覧より読みやすいはずです。</p>`;
+    acts.innerHTML=""; hubText("","読む","六つの家族");
+    return;
+  }
+
+  const F=FAMILIES[sel.fi];
+  chip.style.setProperty("--c",famVar(sel.fi));
+  chipT.textContent = `${F.name} ・ ${F.v} ・ エネルギーは${F.a}`;
+
+  if(sel.mi===null){
+    kana.textContent = F.yomi;
+    name.textContent = F.name;
+    body.innerHTML = `<p style="color:var(--ink-2); font-size:17px">${esc(F.tone)}</p>
+      <dl style="margin:22px 0 0">
+        <div class="field"><dt>この中に</dt><dd>${F.mids.map(m=>esc(m.name)).join(" ・ ")}</dd></div>
+      </dl>
+      <p style="color:var(--ink-3); font-size:14.5px; margin-top:18px">来たものを選んでください。
+      家族は語彙を整えるための取り決めで、脳がこう分類しているという主張ではありません ———
+      二つの家族にまたがる言葉があるのは、間違いではなく、本当のことです。</p>`;
+    acts.innerHTML=""; hubText("かぞく",F.name,`${F.mids.length}の気持ち`);
+    return;
+  }
+
+  const M=F.mids[sel.mi];
+  const [word,yomi] = sel.ni!==null ? M.nubs[sel.ni] : [M.name,M.yomi];
+  kana.textContent = yomi;
+  name.textContent = word;
+  if(sel.ni!==null) chipT.textContent = `${F.name} → ${M.name}`;
+
+  body.innerHTML = `
+    <dl style="margin:0">
+      <div class="field"><dt>どういうもの</dt><dd>${esc(M.def)}</dd></div>
+      <div class="field"><dt>身体では</dt><dd>${esc(M.body)}</dd></div>
+      <div class="field"><dt>求めているもの</dt><dd>${esc(M.need)}</dd></div>
+      <div class="field"><dt>自分に聞く</dt><dd>${esc(M.ask)}</dd></div>
+      <div class="field"><dt>もっと細かく</dt><dd><div class="nubs">${
+        M.nubs.map(([n],i)=>`<button class="chip" data-nub="${i}" aria-pressed="${sel.ni===i}">${esc(n)}</button>`).join("")
+      }</div></dd></div>
+    </dl>`;
+  acts.innerHTML = `<button class="btn btn-primary" id="useWord">「${esc(word)}」を記録する →</button>
+                    <button class="btn btn-quiet" id="clearSel">選択を外す</button>`;
+  hubText(sel.ni!==null?M.name:F.name, word, F.name);
+
+  $$("[data-nub]",body).forEach(b=>b.addEventListener("click",()=>{
+    const i=+b.dataset.nub; select(sel.fi,sel.mi, sel.ni===i?null:i);
+  }));
+  $("#useWord").addEventListener("click",()=>prefill(word,sel.fi));
+  $("#clearSel").addEventListener("click",()=>select(null,null,null));
+}
+
+function buildVocab(){
+  $("#vocabList").innerHTML = FAMILIES.map((F,fi)=>`
+    <div>
+      <h4><span class="dot" style="--c:${famVar(fi)}"></span>${esc(F.name)}<span class="kana">${esc(F.yomi)}</span></h4>
+      <ul>${F.mids.map((M,mi)=>
+        `<li><button data-f="${fi}" data-m="${mi}">${esc(M.name)}</button></li>` +
+        M.nubs.map(([n],ni)=>`<li><button data-f="${fi}" data-m="${mi}" data-n="${ni}">${esc(n)}</button></li>`).join("")
+      ).join("")}</ul>
+    </div>`).join("");
+  $$("#vocabList button").forEach(b=>b.addEventListener("click",()=>{
+    select(+b.dataset.f, +b.dataset.m, b.dataset.n!==undefined?+b.dataset.n:null);
+    $("#dial").scrollIntoView({behavior: reduceMotion?"auto":"smooth", block:"start"});
+  }));
+}
+
+/* ══════════════════════════ 五つの段 ══════════════════════════ */
+const picked = { body:new Set(), quad:null };
+
+$("#bodyChips").innerHTML = BODY_CHIPS.map(c=>
+  `<button class="chip" data-body="${esc(c)}" aria-pressed="false">${esc(c)}</button>`).join("");
+$$("#bodyChips button").forEach(b=>b.addEventListener("click",()=>{
+  const v=b.dataset.body, on=b.getAttribute("aria-pressed")==="true";
+  b.setAttribute("aria-pressed",String(!on));
+  on ? picked.body.delete(v) : picked.body.add(v);
+}));
+
+$("#quad").innerHTML = `
+  <span class="qlab" style="grid-row:2; grid-column:1">元気<br>が上</span>
+  <span class="qlab" style="grid-row:1; grid-column:2">つらい</span>
+  <span class="qlab" style="grid-row:1; grid-column:3">心地よい</span>
+  ${[1,0,3,2].map(i=>{ const q=QUADS[i]; return `
+    <button data-q="${i}" aria-pressed="false" style="grid-row:${q.a==="高い"?2:3}; grid-column:${q.v==="心地よくない"?2:3}">
+      <span class="qt">${esc(q.t)}</span><span class="qb">${q.b}</span>
+    </button>`; }).join("")}
+  <span class="qlab" style="grid-row:3; grid-column:1">元気<br>が下</span>`;
+
+$$("#quad button").forEach(b=>b.addEventListener("click",()=>{
+  const i=+b.dataset.q, already = picked.quad===i;
+  $$("#quad button").forEach(x=>x.setAttribute("aria-pressed","false"));
+  picked.quad = already ? null : i;
+  if(!already) b.setAttribute("aria-pressed","true");
+  highlightFams = already ? [] : QUADS[i].fams;
+  sel={fi:null,mi:null,ni:null}; paintDial(); renderReadout();
+}));
+
+$("#toDial").addEventListener("click",()=>{
+  if(picked.quad===null) toast("先に第二段で区画を選んでください");
+  $("#dial").scrollIntoView({behavior: reduceMotion?"auto":"smooth"});
+});
+$("#toLog").addEventListener("click",()=>{
+  if(picked.body.size) $("#bodyIn").value = [...picked.body].join("、");
+  if(picked.quad!==null && sel.fi===null) $("#famIn").value = String(QUADS[picked.quad].fams[0]);
+  $("#log").scrollIntoView({behavior: reduceMotion?"auto":"smooth"});
+  setTimeout(()=>$("#wordIn").focus(), reduceMotion?0:420);
+});
+
+/* ══════════════════════════ 記録帳 ══════════════════════════ */
+const KEY="kansokusho.ledger.v1";
+let entries = [];
+try{ entries = JSON.parse(localStorage.getItem(KEY) || "[]"); if(!Array.isArray(entries)) entries=[]; }
+catch(_){ entries=[]; }
+function persist(){ try{ localStorage.setItem(KEY, JSON.stringify(entries)); }catch(_){ } }
+
+$("#famIn").innerHTML = FAMILIES.map((F,i)=>`<option value="${i}">${esc(F.name)}</option>`).join("");
+let intensity = 3;
+$("#intDial").innerHTML = [1,2,3,4,5].map(n=>`<button data-i="${n}" aria-pressed="${n===3}">${n}</button>`).join("");
+$$("#intDial button").forEach(b=>b.addEventListener("click",()=>{
+  intensity=+b.dataset.i;
+  $$("#intDial button").forEach(x=>x.setAttribute("aria-pressed",String(+x.dataset.i===intensity)));
+}));
+
+function prefill(word,fi){
+  $("#wordIn").value = word;
+  $("#famIn").value  = String(fi);
+  if(picked.body.size && !$("#bodyIn").value) $("#bodyIn").value = [...picked.body].join("、");
+  $("#log").scrollIntoView({behavior: reduceMotion?"auto":"smooth"});
+  setTimeout(()=>$("#noteIn").focus(), reduceMotion?0:420);
+}
+
+$("#saveEntry").addEventListener("click",()=>{
+  const word=$("#wordIn").value.trim();
+  if(!word){ $("#wordIn").focus(); toast("まず言葉を一つ ——— 完璧でなくてもかまいません"); return; }
+  entries.unshift({ id:`${Date.now()}-${entries.length}`, ts:new Date().toISOString(),
+    word, fi:+$("#famIn").value, intensity,
+    body:$("#bodyIn").value.trim(), note:$("#noteIn").value.trim() });
+  persist(); renderLog();
+  $("#wordIn").value=""; $("#bodyIn").value=""; $("#noteIn").value="";
+  toast("記録しました。これで練習は一回ぶん、全部です");
+});
+
+$("#clearBtn").addEventListener("click",()=>{
+  if(!entries.length){ toast("消すものがありません"); return; }
+  if(confirm(`${entries.length}件すべてを消しますか。取り消せません。`)){
+    entries=[]; persist(); renderLog(); toast("記録帳を消しました");
+  }
+});
+
+$("#exportBtn").addEventListener("click", async ()=>{
+  if(!entries.length){ toast("書き出すものがありません"); return; }
+  const rows = [["日時","言葉","家族","強さ","身体","メモ"],
+    ...[...entries].reverse().map(e=>[e.ts,e.word,(FAMILIES[e.fi]||{}).name||"",e.intensity,e.body,e.note])];
+  const csv = rows.map(r=>r.map(c=>`"${String(c??"").replace(/"/g,'""')}"`).join(",")).join("\n");
+  const box=$("#exportOut"), txt=$("#exportTxt");
+  box.hidden=false; txt.value=csv;
+  try{ await navigator.clipboard.writeText(csv); toast(`${entries.length}件をコピーしました`); }
+  catch(_){ txt.focus(); txt.select(); toast("下に選択しました ——— Cmd/Ctrl+C でコピー"); }
+});
+
+const localKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const dayKey = iso => localKey(new Date(iso));
+const fmtDate = iso => { const d=new Date(iso);
+  return `${d.getMonth()+1}月${d.getDate()}日\n` +
+    `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
+
+function stats(){
+  const n=entries.length;
+  const words=new Set(entries.map(e=>e.word));
+  const days=new Set(entries.map(e=>dayKey(e.ts)));
+  const counts=FAMILIES.map(()=>0);
+  entries.forEach(e=>{ if(counts[e.fi]!==undefined) counts[e.fi]++; });
+  const pleasant=entries.filter(e=>FAMILIES[e.fi]?.v==="心地よい").length;
+  return { n, distinct:words.size, days:days.size, counts, pleasant };
+}
+
+function renderTiles(){
+  const s=stats(), pct = s.n ? Math.round(100*s.pleasant/s.n) : 0;
+  $("#tiles").innerHTML = [
+    { v:s.n, l:"記入" }, { v:s.distinct, l:"語彙の数" },
+    { v:s.days, l:"日数" }, { v:s.n?`${pct}%`:"—", l:"心地よい割合" },
+  ].map(t=>`<div class="tile"><div class="tv">${esc(t.v)}</div><div class="tl">${t.l}</div></div>`).join("");
+}
+
+function renderDist(){
+  const s=stats(), max=Math.max(1,...s.counts);
+  $("#dist").innerHTML = FAMILIES.map((F,i)=>`
+    <div class="distrow">
+      <span class="dn"><span class="dot" style="--c:${famVar(i)}"></span>${esc(F.name)}</span>
+      <span class="bartrack"><span class="bar" style="--c:${famVar(i)}; width:${(100*s.counts[i]/max).toFixed(1)}%"></span></span>
+      <span class="dv">${s.counts[i]}</span>
+    </div>`).join("");
+}
+
+function renderSpark(){
+  const svgS=$("#spark"), tip=$("#sparkTip");
+  const data = entries.slice(0,20).reverse();
+  svgS.textContent="";
+  $("#sparkNote").textContent = data.length<3 ? "3回以上でグラフになります" : "";
+  if(data.length<3) return;
+
+  const W=520,H=130, L=22,R=10,T=12,B=20;
+  const x = i => L + (W-L-R) * (data.length===1 ? .5 : i/(data.length-1));
+  const y = v => T + (H-T-B) * (1 - (v-1)/4);
+  const g=el("g");
+  [1,3,5].forEach(v=>{
+    g.appendChild(el("line",{class:"spk-grid", x1:L, x2:W-R, y1:y(v), y2:y(v)}));
+    const t=el("text",{class:"spk-ax", x:2, y:y(v)+3.5}); t.textContent=v; g.appendChild(t);
+  });
+  const pts = data.map((e,i)=>[x(i),y(e.intensity)]);
+  const line = pts.map((p,i)=>`${i?"L":"M"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join("");
+  g.appendChild(el("path",{class:"spk-area", d:`${line}L${pts[pts.length-1][0].toFixed(1)} ${y(1)}L${pts[0][0].toFixed(1)} ${y(1)}Z`}));
+  g.appendChild(el("path",{class:"spk-line", d:line}));
+  const last=pts[pts.length-1];
+  g.appendChild(el("circle",{class:"spk-end", cx:last[0], cy:last[1], r:4.5}));
+  const cross=el("line",{class:"spk-cross", y1:T, y2:H-B, x1:-99, x2:-99, opacity:"0"});
+  g.appendChild(cross);
+  g.appendChild(el("rect",{class:"spk-hit", x:L, y:0, width:W-L-R+8, height:H, style:"cursor:crosshair"}));
+  svgS.appendChild(g);
+
+  const hit=$(".spk-hit",svgS);
+  function move(ev){
+    const r=svgS.getBoundingClientRect(), px=(ev.clientX-r.left)/r.width*W;
+    let bi=0,bd=1e9;
+    pts.forEach((p,i)=>{ const d=Math.abs(p[0]-px); if(d<bd){bd=d;bi=i;} });
+    const e=data[bi], p=pts[bi], dt=new Date(e.ts);
+    cross.setAttribute("x1",p[0]); cross.setAttribute("x2",p[0]); cross.setAttribute("opacity","1");
+    tip.style.left=`${p[0]/W*100}%`; tip.style.top=`${p[1]/H*100}%`;
+    tip.textContent = `${e.word} ・ ${e.intensity}/5 ・ ${dt.getMonth()+1}月${dt.getDate()}日`;
+    tip.style.opacity="1";
+  }
+  hit.addEventListener("pointermove",move);
+  hit.addEventListener("pointerdown",move);
+  hit.addEventListener("pointerleave",()=>{ tip.style.opacity="0"; cross.setAttribute("opacity","0"); });
+}
+
+function renderLedger(){
+  const box=$("#ledger");
+  if(!entries.length){
+    box.innerHTML = `<p class="empty">まだ記入がありません。ダイヤルか五つの段が最初の一件を埋めてくれます ———
+      あるいは上に言葉を打ち込むだけでも。二十秒で一件です。</p>`;
+    return;
+  }
+  box.innerHTML = entries.map(e=>{
+    const F=FAMILIES[e.fi]||FAMILIES[0];
+    return `<div class="entry">
+      <span class="ets num">${esc(fmtDate(e.ts)).replace("\n","<br>")}</span>
+      <span>
+        <span class="ew"><span class="dot" style="--c:${famVar(e.fi)}"></span>
+          <span class="ewn">${esc(e.word)}</span>
+          <span class="eint">${esc(F.name)} ・ ${e.intensity}/5</span></span>
+        ${e.body ? `<span class="enote">${esc(e.body)}</span>`:""}
+        ${e.note ? `<span class="enote">${esc(e.note)}</span>`:""}
+      </span>
+      <button class="del" data-del="${esc(e.id)}" aria-label="この記入を消す" title="消す">✕</button>
+    </div>`;
+  }).join("");
+  $$("[data-del]",box).forEach(b=>b.addEventListener("click",()=>{
+    entries = entries.filter(x=>x.id!==b.dataset.del); persist(); renderLog();
+  }));
+}
+
+function renderLog(){ renderTiles(); renderSpark(); renderDist(); renderLedger(); }
+
+/* ══════════════════════════ 呼吸のペーサー ══════════════════════════ */
+const PRACTICE = {
+  A:{ total:300, cycle:[["すう",2000],["もうすこし",1000],["長くはく",6000]] },
+  B:{ total:180, stages:[[0,"ひろく"],[60,"呼吸へ"],[120,"身体全体"]] },
+  C:{ total:600 },
+};
+const state = { A:{raf:null,acc:0}, B:{raf:null,acc:0}, C:{raf:null,acc:0} };
+let returns = 0;
+const fmtClock = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`;
+const PC_MIN = 18, PC_MAX = 58;
+
+function pacerFrame(id){
+  const svgP=$(`#pacer${id}`); svgP.textContent="";
+  const g=el("g");
+  g.appendChild(el("circle",{class:"pc-track", cx:80, cy:80, r:66}));
+  for(let k=0;k<24;k++){
+    const a=-90+k*15, r0=k%6===0?58:62;
+    g.appendChild(el("line",{class:"pc-ticks",
+      x1:(80+r0*Math.cos(rad(a))).toFixed(2), y1:(80+r0*Math.sin(rad(a))).toFixed(2),
+      x2:(80+66*Math.cos(rad(a))).toFixed(2), y2:(80+66*Math.sin(rad(a))).toFixed(2)}));
+  }
+  g.appendChild(el("circle",{class:"pc-fill", id:`fill${id}`, cx:80, cy:80, r:PC_MIN}));
+  g.appendChild(el("circle",{class:"pc-ring", id:`ring${id}`, cx:80, cy:80, r:PC_MIN}));
+  svgP.appendChild(g);
+  setPacer(id, PC_MIN, "じゅんび", PRACTICE[id].total);
+}
+
+function setPacer(id,r,phase,left){
+  const f=$(`#fill${id}`), k=$(`#ring${id}`);
+  if(f){ f.setAttribute("r",r.toFixed(1)); k.setAttribute("r",r.toFixed(1)); }
+  const p=$(`#ph${id}`), t=$(`#clk${id}`);
+  if(p) p.textContent=phase;
+  if(t) t.textContent=fmtClock(left);
+}
+
+function pacerAt(id, elapsed){
+  const cfg=PRACTICE[id], left=Math.max(0, cfg.total-elapsed);
+  let r=PC_MIN, phase="";
+  if(cfg.cycle){
+    const period=cfg.cycle.reduce((a,c)=>a+c[1],0);
+    let m=(elapsed*1000)%period;
+    for(const [label,dur] of cfg.cycle){
+      if(m<dur){ const f=m/dur; phase=label;
+        r = label==="長くはく" ? PC_MAX-(PC_MAX-PC_MIN)*f
+          : (label==="すう" ? PC_MIN+28*f : PC_MIN+28+(PC_MAX-PC_MIN-28)*f);
+        break; }
+      m-=dur;
+    }
+    if(reduceMotion) r = phase==="長くはく" ? 26 : 54;
+  } else if(cfg.stages){
+    phase = ([...cfg.stages].reverse().find(st=>elapsed>=st[0]) || cfg.stages[0])[1];
+    r = reduceMotion ? 40 : 41+13*Math.sin(elapsed/5*Math.PI*2);
+  } else {
+    phase="そこにいる";
+    r = reduceMotion ? 40 : 42+6*Math.sin(elapsed/6*Math.PI);
+  }
+  return {r, phase, left};
+}
+
+function startTimer(id){
+  const st=state[id], btn=$(`[data-timer="${id}"]`);
+  if(st.raf){ cancelAnimationFrame(st.raf); st.raf=null; btn.textContent="つづける"; return; }
+  const t0 = performance.now() - st.acc*1000;
+  const tick = now => {
+    /* rAF reports the frame's start time, which can precede the reading above */
+    const elapsed = Math.max(0,(now - t0)/1000);
+    st.acc = elapsed;
+    const {r,phase,left} = pacerAt(id, elapsed);
+    setPacer(id, r, phase, left);
+    if(left<=0){ finishTimer(id); return; }
+    st.raf = requestAnimationFrame(tick);
+  };
+  btn.textContent="とめる"; st.raf = requestAnimationFrame(tick);
+}
+function finishTimer(id){
+  const st=state[id];
+  if(st.raf) cancelAnimationFrame(st.raf);
+  st.raf=null; st.acc=0;
+  const btn=$(`[data-timer="${id}"]`); if(btn) btn.textContent="もういちど";
+  setPacer(id,PC_MIN,"おわり",0);
+  toast("おわりです。何が変わったか ——— そして変わらなかったかを、見てください");
+}
+function resetTimer(id){
+  const st=state[id];
+  if(st.raf) cancelAnimationFrame(st.raf);
+  st.raf=null; st.acc=0;
+  const btn=$(`[data-timer="${id}"]`); if(btn) btn.textContent="はじめる";
+  pacerFrame(id);
+  if(id==="C"){ returns=0; $("#retCount").textContent="0回"; }
+}
+["A","B","C"].forEach(id=>{
+  pacerFrame(id);
+  $(`[data-timer="${id}"]`).addEventListener("click",()=>startTimer(id));
+  $(`[data-reset="${id}"]`).addEventListener("click",()=>resetTimer(id));
+});
+$("#retBtn").addEventListener("click",()=>{
+  returns++;
+  $("#retCount").textContent = `${returns}回`;
+  if(returns===8) toast("八回帰ってきたなら、八回ぶんの練習です。それが中身です");
+});
+
+/* ══════════════════════════ 起動 ══════════════════════════ */
+buildDial(); buildVocab(); renderReadout(); renderLog();
+</script>
+
+</body>
+</html>
