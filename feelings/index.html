@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="An interactive feeling wheel with a distinct explanation for every word, naming prompts, a private check-in ledger, and timed presence practices.">
+<meta name="description" content="Two interactive feeling dials — what a feeling is in the body, and what it is about — with naming prompts, a private ledger and timed presence practices.">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img,svg{max-width:100%}</style>
 </head>
 <body>
@@ -381,6 +381,22 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
 html.reveal-on [data-reveal]{opacity:0; transform:translateY(22px)}
 html.reveal-on [data-reveal].is-in{opacity:1; transform:none;
   transition:opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1)}
+/* second dial face — neutral inner ring (its families are appraisals, not affect) */
+.dial-tabs{display:flex; gap:3px; margin-bottom:18px; border:1px solid var(--rule);
+  border-radius:3px; padding:3px; background:var(--panel)}
+.dial-tabs button{flex:1; font-family:inherit; font-size:12.5px; letter-spacing:.04em;
+  padding:11px 12px; background:transparent; border:0; border-radius:2px;
+  color:var(--ink-2); cursor:pointer; transition:background .15s, color .15s}
+.dial-tabs button:hover{background:var(--sunk); color:var(--ink)}
+.dial-tabs button[aria-selected="true"]{background:var(--accent); color:var(--accent-ink)}
+.wedge[data-neutral="1"] .wseg{fill:color-mix(in oklab, var(--ink-3) 15%, var(--panel))}
+.wedge[data-neutral="1"]:hover .wseg{fill:color-mix(in oklab, var(--ink-3) 26%, var(--panel))}
+.wedge[data-neutral="1"][data-on="1"] .wseg{fill:color-mix(in oklab, var(--ink-3) 36%, var(--panel)); stroke:var(--ink-3)}
+.af-link{display:inline-flex; align-items:center; gap:8px; background:none; border:0; padding:0;
+  font-family:inherit; font-size:inherit; color:var(--accent); cursor:pointer;
+  text-decoration:underline; text-underline-offset:3px; text-align:left}
+.af-link:hover{color:var(--accent-2)}
+
 @media (prefers-reduced-motion: reduce){
   html.reveal-on [data-reveal]{opacity:1 !important; transform:none !important}
 }
@@ -438,10 +454,14 @@ html.reveal-on [data-reveal].is-in{opacity:1; transform:none;
 
   <div class="dial-grid">
     <div>
+      <div class="dial-tabs" role="tablist" aria-label="Which dial" data-reveal>
+        <button type="button" role="tab" data-dial="core" aria-selected="true"></button>
+        <button type="button" role="tab" data-dial="about" aria-selected="false"></button>
+      </div>
       <div class="dial-shell" data-reveal><svg class="dial" id="dialSvg" viewBox="0 0 760 760" role="group" aria-label="Interactive feeling dial"></svg></div>
       <p class="eyebrow" style="margin-top:16px; text-align:center; line-height:1.7">
-        Inner ring: family · Middle: feeling · Outer: the precise word<br>
-        <span style="text-transform:none; letter-spacing:.02em">Reading clockwise from the top — pleasant &amp; energized → pleasant &amp; quiet → unpleasant &amp; quiet → unpleasant &amp; energized</span>
+        <span id="dialNote"></span><br>
+        <span id="dialNote2" style="text-transform:none; letter-spacing:.02em"></span>
       </p>
     </div>
 
@@ -1203,6 +1223,225 @@ const FAMILIES = [
           ["hot","The first second of it.","The flash before you have decided anything. Catching it here is the whole skill: there is a real gap between hot and enraged."]] } ] },
 ];
 
+const ABOUT = [
+  { key:"self", name:"A SELF ON TRIAL", tone:"Feelings that need a self to be evaluated. Psychology calls these the self-conscious emotions, and they are the ones people most often mix up — at real cost, because guilt and shame pull in opposite directions.",
+    mids:[
+      { name:"guilt", af:3, nubs:null,
+        def:"“I did something bad.” Focused on the act, which is why it points toward repair — apologising, fixing, making it right. The workable one.",
+        body:"Restless, forward-leaning, a pull toward the person you affected. Not much of a face.",
+        need:"An action. Guilt is satisfied by amends, not by feeling worse.",
+        ask:"What did I do, and what would repair look like?",
+        vs:"With shame. Guilt is about the deed; shame is about you. Guilt moves you toward the person you hurt, shame moves you away from everyone — and guilt-proneness predicts empathy while shame-proneness predicts withdrawal or aggression (Tangney)." },
+      { name:"shame", af:3, nubs:null,
+        def:"“I am bad.” Focused on the whole self, so there is nothing to fix — only somewhere to hide. Rated more painful and more sudden than guilt.",
+        body:"Heat in the face and neck, slumped posture, head lowered, gaze away. Feeling physically smaller.",
+        need:"To be seen anyway, by one person who doesn't flinch. Shame does not survive being met.",
+        ask:"Can I restate this as “I did ___” instead of “I am ___”?",
+        vs:"With guilt. If the sentence can be rewritten as a deed, you have found the guilt underneath — and that version can be acted on." },
+      { name:"embarrassment", af:4, nubs:null,
+        def:"A trivial social slip with an audience — a trip, a blank, a mispronunciation. No moral weight, which is why it can end in laughter.",
+        body:"Blushing, a wish to disappear briefly, nervous laughter.",
+        need:"For someone to laugh with you rather than at you. It passes on its own.",
+        ask:"Did I break a rule, or just look clumsy?",
+        vs:"With shame. Embarrassment needs an audience and carries no moral charge; shame needs neither and is far more painful (Miller & Tangney)." },
+      { name:"humiliation", af:5, nubs:null,
+        def:"Being lowered by someone else, usually in front of others. Contains anger in a way shame does not, because this was done to you.",
+        body:"Heat, tight jaw, tears close, a stunned quality.",
+        need:"Acknowledgement that it was wrong — and distance from whoever did it.",
+        ask:"Who lowered me, and do I actually accept their verdict?",
+        vs:"With shame. Shame is a verdict you pass on yourself; humiliation is one passed on you. Mistaking the second for the first is how people end up agreeing with their own mistreatment." },
+      { name:"pride", af:1, nubs:null,
+        def:"Two different feelings share this word. Earned pride follows effort you can point at. Inflated pride follows a claim about your talent or standing.",
+        body:"Chest lifted, spine long, small involuntary smile. Identical for both kinds, which is the problem.",
+        need:"To be checked. Ask which kind before acting on it.",
+        ask:"Is this about what I did, or about what I am?",
+        vs:"Its own two forms. Effort-pride tracks higher self-esteem, agreeableness and conscientiousness; talent-pride tracks narcissism and dominance (Tracy & Robins)." },
+    ] },
+  { key:"choice", name:"A CHOICE YOU MADE", tone:"Feelings that need an imagined alternative — a version of events that didn't happen. They are all counterfactual, and telling them apart changes what you should do next.",
+    mids:[
+      { name:"regret", af:3, nubs:null,
+        def:"“I should have chosen differently.” Decision-focused: it requires that you were responsible, and that you can picture the better path clearly.",
+        body:"Sinking, replaying, a wish to rewind. Sleep-interrupting.",
+        need:"Extraction of the lesson, then release. Regret's whole function is improving the next decision.",
+        ask:"What would I do differently — and is that decision still available anywhere?",
+        vs:"With disappointment. Regret is about your decision; disappointment is about the outcome (van Dijk & Zeelenberg). Worth knowing the shape too: regrets about things you did sting hardest at first, but regrets about things you didn't do are what people still carry decades later (Gilovich & Medvec), and regret clusters where you still see opportunity (Roese & Summerville)." },
+      { name:"remorse", af:3, nubs:null,
+        def:"Regret with a person on the other end of it. Carries moral weight and a pull toward making amends, not just toward having chosen better.",
+        body:"Heavy chest, difficulty meeting eyes, an urge to speak to them.",
+        need:"Repair with the actual person, where that's possible and welcome.",
+        ask:"Who was harmed, and what do they need — as opposed to what would make me feel better?",
+        vs:"With regret. You can regret a haircut. Remorse requires that somebody was hurt, which is why it obliges you to something beyond reflection." },
+      { name:"disappointment", af:3, nubs:null,
+        def:"The outcome was worse than you expected, and it wasn't your call. Outcome-focused and situational; no responsibility required.",
+        body:"Deflation, a drop, shoulders down. Quieter than regret.",
+        need:"To grieve the expectation, and to check whether it was reasonable.",
+        ask:"What did I expect, and who or what actually decided this?",
+        vs:"With regret. If nobody could have chosen otherwise, it is disappointment — and no amount of self-examination will help, because there was no decision to examine." },
+      { name:"relief", af:2, nubs:null,
+        def:"The worse version didn't happen. Pleasant, but wholly dependent on the near-miss existing.",
+        body:"A long exhale, legs weak, sudden tiredness.",
+        need:"To be noticed. Relief evaporates fast and rarely gets logged.",
+        ask:"What did I just avoid — and was I carrying that fear longer than I realised?",
+        vs:"With happiness. Relief is defined by what was avoided; remove the imagined worse outcome and nothing is left." },
+      { name:"torn", af:4, nubs:null,
+        def:"Two options, both with real cost, and the decision still open. This is pre-regret — the raw material regret is later made from.",
+        body:"Circling thoughts, physical restlessness, difficulty starting anything else.",
+        need:"Both sides written down. Torn is much smaller on paper than in your head.",
+        ask:"What do I lose in each direction — and which loss could I live with?",
+        vs:"With anxiety. Anxiety has no fork in it; torn has exactly two tines, and naming them both usually shrinks it." },
+    ] },
+  { key:"other", name:"SOMEONE ELSE", tone:"Feelings that need another person in the room — usually one who has something, or lacks something, or is suffering. Comparison and care both live here.",
+    mids:[
+      { name:"envy", af:5, nubs:null,
+        def:"They have it and you don't. It runs in two directions: it can pull you upward — work harder, close the gap — or pull them downward, wishing they'd lose it.",
+        body:"A sour tightness, difficulty being generous, attention stuck on them.",
+        need:"To find out which direction it's running, then use the upward one.",
+        ask:"Do I want what they have, or do I want them not to have it?",
+        vs:"With jealousy. Envy involves two people and something you lack. The direction matters too: the upward kind predicts effort and self-improvement, the downward kind predicts undermining them (van de Ven, Zeelenberg & Pieters)." },
+      { name:"jealousy", af:4, nubs:null,
+        def:"You have it and someone might take it. Needs three parties: you, the thing you value, and a rival.",
+        body:"Hypervigilance, checking, tight chest, a hunted quality.",
+        need:"To say the fear out loud to the person it's about, rather than surveil them.",
+        ask:"What am I afraid of losing, and to whom?",
+        vs:"With envy. Count the people. Two is envy, three is jealousy. They call for completely different conversations." },
+      { name:"resentment", af:5, nubs:null,
+        def:"An old injury that never got acknowledged, still charging interest. Anger that went quiet and stayed rather than discharging.",
+        body:"A held-in quality, sarcasm arriving unbidden, tiredness around that person.",
+        need:"The original hurt named — to them if that's possible, to yourself if it isn't.",
+        ask:"What am I still owed, and have I ever actually asked for it?",
+        vs:"With anger. Anger is current and discharges. Resentment is archived and compounds, which is why it outlasts the event by years." },
+      { name:"admiration", af:0, nubs:null,
+        def:"They have it and you're glad. The same comparison envy makes, without the ache — which usually means the gap doesn't feel like a verdict on you.",
+        body:"Warmth, wanting to watch, wanting to learn. Open rather than tight.",
+        need:"Expression. Told out loud, it becomes a relationship instead of a feeling.",
+        ask:"What exactly are they doing that I want to learn?",
+        vs:"With envy. Identical situation, different appraisal — admiration is what envy becomes once the comparison stops reading as a judgement of you." },
+      { name:"contempt", af:5, nubs:null,
+        def:"Looking down on someone as a whole person. Not “you did wrong” but “you are beneath me.” Shows up as eye-rolling, mockery, sarcasm from above.",
+        body:"A cold, closed quality. The face does more than the body — a one-sided lip curl.",
+        need:"To be taken extremely seriously as a warning sign, and traced back to the hurt underneath.",
+        ask:"What did they do that I turned into who they are?",
+        vs:"With anger. Anger treats them as an equal who wronged you; contempt has already demoted them. This is not a small difference — in Gottman's four decades of couples research, contempt is the single strongest predictor of divorce." },
+      { name:"compassion", af:2, nubs:null,
+        def:"Their suffering registers and you're moved toward them. Warmth, approach, a wish to help that leaves you steady enough to actually do it.",
+        body:"Chest warm and open, calm, leaning in. Notably not distressed.",
+        need:"Somewhere to act, even in a small way.",
+        ask:"Am I with them, or am I drowning alongside them?",
+        vs:"With empathic distress. Feeling their pain as your own leads to withdrawal and burnout; compassion runs on a different brain network and can be trained (Klimecki, Leiberg, Ricard & Singer). Singer and Klimecki argue “compassion fatigue” is a misnomer — what burns carers out is empathic distress. If you work with people who are struggling, this is the most useful distinction on this dial." },
+    ] },
+  { key:"unknown", name:"NOT KNOWING", tone:"Feelings that need a belief or an expectation to push against. Psychologists call them the knowledge emotions, and they are the engine of learning rather than obstacles to it.",
+    mids:[
+      { name:"curious", af:0, nubs:null,
+        def:"A specific gap you want closed. Narrow and slightly itchy — it points at a question.",
+        body:"Leaning in, quickened attention, a pull toward the thing.",
+        need:"Permission to follow it, and enough time to reach an answer.",
+        ask:"What exactly do I want to know?",
+        vs:"With interest. Curiosity wants an answer and ends when it gets one; interest wants to stay and can last for years." },
+      { name:"interested", af:0, nubs:null,
+        def:"Novel, and you can follow it. The appraisal is high novelty plus enough comprehensibility to keep up.",
+        body:"Absorbed, still, time going missing. Easy breathing.",
+        need:"Not to be interrupted.",
+        ask:"What makes this worth staying with?",
+        vs:"With confusion. Same novelty — the split is whether you can make sense of it. Comprehensible novelty produces interest; incomprehensible novelty produces confusion (Silvia)." },
+      { name:"confused", af:4, nubs:null,
+        def:"Novel and you can't follow it yet. Unpleasant, and also one of the most productive states there is: it marks the exact edge of what you know.",
+        body:"Furrowed, stalled, re-reading the same line. A slight pressure behind the eyes.",
+        need:"A smaller piece, or a different explanation — not more of the same one.",
+        ask:"What is the first thing here I genuinely don't follow?",
+        vs:"With being stupid. Confusion is information about where your edge currently is, and it reliably precedes learning rather than replacing it. Worth teaching children explicitly, because most of them read it as a verdict." },
+      { name:"surprised", af:0, nubs:null,
+        def:"Your model of the world was wrong. The shortest-lived entry on this dial, and the only genuinely neutral one — surprise takes its colour from whatever follows.",
+        body:"Eyebrows up, a sharp inhale, momentary stillness. Over in seconds.",
+        need:"A moment to see what it turns into.",
+        ask:"What did I believe a second ago that turns out not to be true?",
+        vs:"With shock. Surprise resolves within seconds into something else. If it is still here, the thing to name is whatever it became." },
+      { name:"awe", af:2, nubs:null,
+        def:"Something too vast to fit in the categories you brought with you. Two ingredients: vastness, and needing to rearrange your mental furniture to accommodate it.",
+        body:"Chest open, chills, a stopped quality. Sometimes tears.",
+        need:"Time, and not to be immediately explained.",
+        ask:"What just turned out to be bigger than I had room for?",
+        vs:"With surprise. Surprise says the model was wrong; awe says the model is too small (Keltner & Haidt). Awe reliably reduces self-focus and increases feeling connected to others." },
+    ] },
+  { key:"foul", name:"SOMETHING FOUL", tone:"Aversion — the family the original feeling wheel leaves out entirely, despite disgust being one of the most robustly established basic emotions. It runs from spoiled food all the way up to moral violation.",
+    mids:[
+      { name:"disgusted", af:5, nubs:null,
+        def:"Rejection at the level of the mouth and stomach — spoiled, rotten, contaminated. The oldest and most physical entry here.",
+        body:"Nose wrinkled, upper lip raised, nausea, turning away.",
+        need:"Distance from the thing. This one is usually best obeyed.",
+        ask:"What do I want out of me, or away from me?",
+        vs:"With dislike. Disgust involves the body wanting to expel something. Dislike is only preference, and it doesn't come with nausea." },
+      { name:"revolted", af:4, nubs:null,
+        def:"Confronted with the body as a body — injury, wounds, death. Rozin called this the animal-reminder kind, because what it really points at is your own mortality.",
+        body:"Faint, cold, hands clammy, need to look away.",
+        need:"To look away, and to not be shamed for needing to.",
+        ask:"Is this about danger, or about being reminded what I'm made of?",
+        vs:"With fear. Fear says it might hurt me. Revulsion says I don't want this near me — and it can arrive when there is no threat at all." },
+      { name:"indignant", af:5, nubs:null,
+        def:"A standard you hold was violated, and not necessarily against you. Anger on behalf of a rule rather than an injury.",
+        body:"Upright, energised, wanting to speak. Cleaner than personal anger.",
+        need:"An outlet with some aim to it. This is the most useful anger there is.",
+        ask:"Which principle got broken, and what would defending it actually involve?",
+        vs:"With personal anger. Indignation survives you not being the victim — which is exactly what makes it the engine behind most things worth doing." },
+      { name:"elevated", af:0, nubs:null,
+        def:"Witnessing someone be genuinely good, and feeling lifted and wanting to be better yourself. The opposite pole from moral disgust.",
+        body:"Warm chest, throat tight, sometimes tears. An expansive feeling.",
+        need:"To be acted on quickly — it converts into generosity if you let it.",
+        ask:"What did I just see someone do, and what does it make me want to do?",
+        vs:"With admiration. Admiration is for skill; elevation is for goodness, and it specifically makes people want to help others (Haidt)." },
+    ] },
+  { key:"gone", name:"SOMETHING GONE", tone:"Feelings that need an absence — something that was here, or should be here, or that you can't reach. Includes the two states most often confused with depression.",
+    mids:[
+      { name:"nostalgic", af:2, nubs:null,
+        def:"A past that is gone and was good. Bittersweet, but the evidence is clear it runs sweeter than bitter, and it does real work rather than merely aching.",
+        body:"A warm heaviness in the chest, a faraway gaze, slower breath.",
+        need:"To be shared. Nostalgia works best out loud with someone who was there.",
+        ask:"What was I part of then, and what of it do I still have?",
+        vs:"With sadness. Nostalgia is not a lesser sadness but a resource: it raises social connectedness, then a sense of continuity with who you were, and through those, meaning in life (Sedikides & Wildschut)." },
+      { name:"longing", af:3, nubs:null,
+        def:"Reaching for something you can name and cannot have — a person, a place, a version of your life that stayed hypothetical.",
+        body:"An ache with a direction to it. Chest and throat. Worse at night.",
+        need:"To be admitted rather than argued with, and sometimes grieved.",
+        ask:"What am I reaching for, and is any part of it actually reachable?",
+        vs:"With nostalgia. Nostalgia looks back and is warm. Longing points at something still wanted, and it aches." },
+      { name:"heavy-hearted", af:3, nubs:null,
+        def:"Sorrow with weight in it. The heaviness is not just a figure of speech — the link runs both ways, and physically carrying something heavy measurably makes people sadder. Less a separate emotion than sadness reported honestly through the body.",
+        body:"Exactly what the name says: weight in the chest, limbs slow, movement costly.",
+        need:"Less carrying. Both kinds.",
+        ask:"What am I carrying, and how much of it is actually mine to carry?",
+        vs:"With depression. Heavy-heartedness has an object you could name if asked. If there is no object and it has lasted weeks, that is worth a professional's attention rather than a better word." },
+      { name:"bored", af:3, nubs:null,
+        def:"You want to be engaged and cannot get your attention to land anywhere. Tolstoy called it the desire for desires, and the wanting is precisely what makes it uncomfortable.",
+        body:"Restless, fidgety, time dragging, nothing appealing.",
+        need:"A better-matched challenge — too easy and too hard both produce this.",
+        ask:"Do I want to be engaged and can't, or do I not want anything?",
+        vs:"With apathy. Boredom still contains the wanting; apathy has lost it (Eastwood). The difference decides everything about what helps: stimulation reaches boredom and does nothing for apathy." },
+      { name:"apathetic", af:3, nubs:null,
+        def:"The wanting itself has gone quiet. Not restless — flat, and uninterested across the board rather than at this particular moment.",
+        body:"Still, slack, unbothered in a way that isn't peace. Nothing pulls.",
+        need:"To be taken seriously, especially if it has outlasted a good night's sleep by weeks.",
+        ask:"When did I last want something, and what happened around then?",
+        vs:"With boredom, and with peace. Apathy doesn't want anything, so offering activities won't touch it — and unlike calm, it isn't restful. Persistent apathy belongs in a conversation with a professional." },
+    ] },
+];
+
+/* ── two dial faces on one instrument ──
+   Dial one asks what a feeling is in the body (core affect: valence x arousal).
+   Dial two asks what it is ABOUT — feelings needing a further appraisal: a self
+   being judged, a choice, another person, not-knowing, revulsion, an absence.
+   Colour keeps meaning the same thing on both: every dial-two feeling is painted
+   with the hue of its nearest affect family, so position carries the new axis
+   and hue still says where it lands in the body. */
+const DIALS = {
+  core:  { rings:3, fams:FAMILIES, tab:"What is it in the body?",  note:"Inner ring: family · Middle: feeling · Outer: the precise word",
+           note2:"Reading clockwise from the top — pleasant & energized → pleasant & quiet → unpleasant & quiet → unpleasant & energized"  },
+  about: { rings:2, fams:ABOUT,    tab:"What is it about?", note:"Inner ring: what the feeling needs · Outer ring: the feeling, coloured by where it lands on the body dial",
+           note2:"Six ways a feeling can need more than pleasant-or-unpleasant and high-or-low energy" },
+};
+let dialKey = "core";
+const DL   = () => DIALS[dialKey];
+const FAMS = () => DL().fams;
+const isAbout = () => dialKey === "about";
+
 const BODY_CHIPS = ["tight chest","hollow stomach","thick throat","clenched jaw","high shoulders",
   "buzzing hands","hot face","heavy limbs","shallow breath","can't sit still","behind the eyes","can't locate it"];
 
@@ -1275,36 +1514,58 @@ function buildDial(){
 
   /* rings */
   const gRings = el("g");
-  FAMILIES.forEach((F,fi)=>{
+  FAMS().forEach((F,fi)=>{
     const fa0 = -90 + fi*60, fa1 = fa0 + 60;
 
     /* — core wedge — */
-    const wCore = el("g",{ class:"wedge", "data-kind":"core", "data-fi":fi, tabindex:"0",
+    const wCore = el("g",{ class:"wedge", "data-kind":"core", "data-fi":fi, tabindex:"0", "data-neutral":isAbout()?"1":"0",
       role:"button", "aria-label":`${F.name} — feeling family`, style:`--c:${famVar(fi)}` });
     wCore.appendChild(el("path",{class:"wseg", d:sector(R1[0],R1[1],fa0+PAD,fa1-PAD)}));
       const cr=(R1[0]+R1[1])/2, ca=rad(fa0+30);
-    const ct=el("text",{class:"wlabel wlabel-core",
-      x:(C+cr*Math.cos(ca)).toFixed(1), y:(C+cr*Math.sin(ca)).toFixed(1), "text-anchor":"middle"});
-    ct.textContent=F.name.toUpperCase(); wCore.appendChild(ct);
+    const cxp=(C+cr*Math.cos(ca)), cyp=(C+cr*Math.sin(ca));
+    /* Dial two's family names are phrases, not words — wrap to two balanced
+       lines or they run straight out of the wedge. */
+    const words=F.name.toUpperCase().split(" ");
+    let lines=[F.name.toUpperCase()];
+    if(words.length>1){
+      let best=1, diff=1e9;
+      for(let k=1;k<words.length;k++){
+        const a=words.slice(0,k).join(" ").length, b=words.slice(k).join(" ").length;
+        if(Math.abs(a-b)<diff){diff=Math.abs(a-b); best=k;}
+      }
+      lines=[words.slice(0,best).join(" "), words.slice(best).join(" ")];
+    }
+    const ct=el("text",{class:"wlabel wlabel-core", x:cxp.toFixed(1),
+      y:(cyp-(lines.length-1)*7).toFixed(1), "text-anchor":"middle"});
+    lines.forEach((ln,li)=>{
+      const ts=el("tspan",{x:cxp.toFixed(1), dy:li?"14":"0"});
+      ts.textContent=ln; ct.appendChild(ts);
+    });
+    wCore.appendChild(ct);
     gRings.appendChild(wCore);
 
     /* — mid wedges — */
+    const step = 60 / F.mids.length;          // families may hold 4–6 feelings
     F.mids.forEach((M,mi)=>{
-      const ma0 = fa0 + mi*15, ma1 = ma0 + 15;
+      const ma0 = fa0 + mi*step, ma1 = ma0 + step;
+      const hue = isAbout() ? famVar(M.af) : famVar(fi);
       const w = el("g",{ class:"wedge", "data-kind":"mid", "data-fi":fi, "data-mi":mi, tabindex:"0",
-        role:"button", "aria-label":`${M.name} — a ${F.name.toLowerCase()} feeling`, style:`--c:${famVar(fi)}` });
-      w.appendChild(el("path",{class:"wseg", d:sector(R2[0],R2[1],ma0+PAD,ma1-PAD)}));
-      w.appendChild(radialLabel(M.name,"wlabel-mid",R2[0],ma0+7.5,8));
+        role:"button", "aria-label":`${M.name} — a ${F.name.toLowerCase()} feeling`, style:`--c:${hue}` });
+      const RB = DL().rings===3 ? R2 : [R2[0],R3[1]];   // no third ring: use the space
+      w.appendChild(el("path",{class:"wseg", d:sector(RB[0],RB[1],ma0+PAD,ma1-PAD)}));
+      w.appendChild(radialLabel(M.name,"wlabel-mid",RB[0],ma0+step/2,8));
       gRings.appendChild(w);
     });
   });
   svg.appendChild(gRings);
 
   /* — nuance ring: guide circles so the empty slot reads as waiting — */
-  const guide=el("g",{"aria-hidden":"true"});
-  [R3[0],R3[1]].forEach(r=>guide.appendChild(
-    el("circle",{cx:C, cy:C, r, fill:"none", stroke:"var(--rule)", "stroke-width":"1"})));
-  svg.appendChild(guide);
+  if(DL().rings===3){
+    const guide=el("g",{"aria-hidden":"true"});
+    [R3[0],R3[1]].forEach(r=>guide.appendChild(
+      el("circle",{cx:C, cy:C, r, fill:"none", stroke:"var(--rule)", "stroke-width":"1"})));
+    svg.appendChild(guide);
+  }
   svg.appendChild(el("g",{id:"nubRing"}));
 
   /* — hub readout — */
@@ -1345,11 +1606,11 @@ function paintDial(){
 
 function drawNubRing(){
   const g=$("#nubRing"); g.textContent="";
-  if(sel.fi===null) return;
+  if(DL().rings!==3 || sel.fi===null) return;
   /* Fill the whole family's outer arc, not just three slivers — twelve words
      read as a ring segment, three read as stray tags. The selected feeling's
      words stay lit; its siblings go quiet but remain reachable. */
-  const F=FAMILIES[sel.fi], fa0 = -90 + sel.fi*60;
+  const F=FAMS()[sel.fi], fa0 = -90 + sel.fi*60;
   F.mids.forEach((M,mi)=>{
     M.nubs.forEach(([word],ni)=>{
       const a0 = fa0 + mi*15 + ni*5;
@@ -1369,6 +1630,16 @@ function drawNubRing(){
 
 /* ── selection ── */
 let highlightFams = [];
+
+function switchDial(key, fi, mi){
+  dialKey = key;
+  highlightFams = [];
+  sel = { fi:(fi??null), mi:(mi??null), ni:null };
+  $$(".dial-tabs button").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.dial===key)));
+  const t=$("#dialNote"); if(t) t.textContent = DL().note;
+  const t2=$("#dialNote2"); if(t2) t2.textContent = DL().note2;
+  buildDial(); buildVocab(); renderReadout();
+}
 
 function select(fi,mi,ni){
   highlightFams = [];
@@ -1396,7 +1667,13 @@ function renderReadout(){
   if(sel.fi===null){
     chip.style.setProperty("--c","var(--accent)"); chipT.textContent="No selection";
     name.textContent="Start anywhere";
-    body.innerHTML = `<p style="color:var(--ink-2)">Tap a family in the inner ring — or, if you already
+    body.innerHTML = isAbout() ? `<p style="color:var(--ink-2)">Tap a family in the inner ring. These six
+      are not moods — they are what a feeling <em>needs</em> in order to exist at all: a self being
+      judged, a choice you made, another person, not knowing, something repellent, something absent.</p>
+      <p style="color:var(--ink-3); font-size:15px; margin-top:14px">Every word out here also carries a
+      colour, and the colour is where it lands on the body dial. So position tells you what the feeling is
+      about, and hue tells you what it feels like.</p>`
+      : `<p style="color:var(--ink-2)">Tap a family in the inner ring — or, if you already
       know roughly where you are, jump straight to the middle ring. There is no wrong entry point; the
       dial is a vocabulary, not a diagnostic.</p>
       <p style="color:var(--ink-3); font-size:15px; margin-top:14px">Can't tell where to start? Work the
@@ -1407,9 +1684,10 @@ function renderReadout(){
     return;
   }
 
-  const F=FAMILIES[sel.fi];
+  const F=FAMS()[sel.fi];
   chip.style.setProperty("--c",famVar(sel.fi));
-  chipT.textContent = `${F.name} · ${F.v} · ${F.a==="high"?"energised":"low energy"}`;
+  chipT.textContent = isAbout() ? `Needs: ${F.name.toLowerCase()}`
+    : `${F.name} · ${F.v} · ${F.a==="high"?"energised":"low energy"}`;
 
   if(sel.mi===null){
     name.textContent = F.name;
@@ -1417,15 +1695,39 @@ function renderReadout(){
       <dl style="margin:20px 0 0">
         <div class="field"><dt>Inside it</dt><dd>${F.mids.map(m=>esc(m.name)).join(" · ")}</dd></div>
       </dl>
-      <p style="color:var(--ink-3); font-size:15px; margin-top:16px">Pick the one that lands. Families are
-      a convention for organising vocabulary, not a claim that your brain files feelings this way — a word
-      that sits in two families at once is a real thing, not a mistake.</p>`;
+      <p style="color:var(--ink-3); font-size:15px; margin-top:16px">${isAbout()
+        ? "Each of these needs an appraisal that pleasant-or-unpleasant and high-or-low energy cannot supply on their own. That is why they sit on a second face instead of being crowded onto the first."
+        : "Pick the one that lands. Families are a convention for organising vocabulary, not a claim that your brain files feelings this way — a word that sits in two families at once is a real thing, not a mistake."}</p>`;
     acts.innerHTML="";
     hubText("family",F.name,`${F.mids.length} feelings`);
     return;
   }
 
   const M=F.mids[sel.mi];
+
+  if(isAbout()){
+    const AF = FAMILIES[M.af];
+    name.textContent = M.name;
+    body.innerHTML = `
+      <dl style="margin:0">
+        <div class="field"><dt>What it is</dt><dd>${esc(M.def)}</dd></div>
+        <div class="field"><dt>Often confused</dt><dd>${esc(M.vs)}</dd></div>
+        <div class="field"><dt>In the body</dt><dd><em>${esc(M.body)}</em></dd></div>
+        <div class="field"><dt>Asking for</dt><dd>${esc(M.need)}</dd></div>
+        <div class="field"><dt>Ask yourself</dt><dd>${esc(M.ask)}</dd></div>
+        <div class="field"><dt>On the body dial</dt><dd><button class="af-link" id="afJump">
+          <span class="dot" style="--c:${famVar(M.af)}"></span>closest to ${esc(AF.name)} — open it there
+        </button></dd></div>
+      </dl>`;
+    acts.innerHTML = `<button class="btn btn-primary" id="useWord">Log “${esc(M.name)}” →</button>
+                      <button class="btn btn-quiet" id="clearSel">Clear</button>`;
+    hubText(F.name.toLowerCase(), M.name, AF.name);
+    $("#afJump").addEventListener("click",()=>switchDial("core",M.af,null));
+    $("#useWord").addEventListener("click",()=>prefill(M.name,M.af));
+    $("#clearSel").addEventListener("click",()=>select(null,null,null));
+    return;
+  }
+
   const N = sel.ni!==null ? M.nubs[sel.ni] : null;   // [word, contrast, meaning]
   const word = N ? N[0] : M.name;
   name.textContent = word;
@@ -1468,12 +1770,12 @@ function renderReadout(){
 
 /* ── vocabulary list view (accessibility + browsing) ── */
 function buildVocab(){
-  $("#vocabList").innerHTML = FAMILIES.map((F,fi)=>`
+  $("#vocabList").innerHTML = FAMS().map((F,fi)=>`
     <div>
       <h4><span class="dot" style="--c:${famVar(fi)}"></span>${esc(F.name)}</h4>
       <ul>${F.mids.map((M,mi)=>
         `<li><button data-f="${fi}" data-m="${mi}">${esc(M.name)}</button></li>` +
-        M.nubs.map(([n],ni)=>`<li><button data-f="${fi}" data-m="${mi}" data-n="${ni}">${esc(n)}</button></li>`).join("")
+        (M.nubs||[]).map(([n],ni)=>`<li><button data-f="${fi}" data-m="${mi}" data-n="${ni}">${esc(n)}</button></li>`).join("")
       ).join("")}</ul>
     </div>`).join("");
   $$("#vocabList button").forEach(b=>b.addEventListener("click",()=>{
@@ -1852,6 +2154,13 @@ $("#retBtn").addEventListener("click",()=>{
   },{ rootMargin:"0px 0px -6% 0px", threshold:0.06 });
   items.forEach(elm=>io.observe(elm));
 })();
+
+$$(".dial-tabs button").forEach(b=>{
+  b.textContent = DIALS[b.dataset.dial].tab;
+  b.addEventListener("click",()=>{ if(dialKey!==b.dataset.dial) switchDial(b.dataset.dial,null,null); });
+});
+$("#dialNote").textContent = DL().note;
+$("#dialNote2").textContent = DL().note2;
 
 buildDial(); buildVocab(); renderReadout(); renderLog();
 </script>

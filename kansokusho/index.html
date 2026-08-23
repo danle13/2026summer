@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="気持ちのダイヤル、一語ごとの説明、名づけの手がかり、記録帳、そしていまここにいる練習。">
+<meta name="description" content="二つの気持ちのダイヤル ——— 身体では何か、そして何についてか。名づけの手がかり、記録帳、いまここにいる練習。">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img,svg{max-width:100%}</style>
 </head>
 <body>
@@ -355,6 +355,22 @@ footer{margin-top:76px; border-top:1px solid var(--rule); background:var(--panel
 html.reveal-on [data-reveal]{opacity:0; transform:translateY(22px)}
 html.reveal-on [data-reveal].is-in{opacity:1; transform:none;
   transition:opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1)}
+/* second dial face — neutral inner ring (its families are appraisals, not affect) */
+.dial-tabs{display:flex; gap:3px; margin-bottom:18px; border:1px solid var(--rule);
+  border-radius:3px; padding:3px; background:var(--panel)}
+.dial-tabs button{flex:1; font-family:inherit; font-size:12.5px; letter-spacing:.04em;
+  padding:11px 12px; background:transparent; border:0; border-radius:2px;
+  color:var(--ink-2); cursor:pointer; transition:background .15s, color .15s}
+.dial-tabs button:hover{background:var(--sunk); color:var(--ink)}
+.dial-tabs button[aria-selected="true"]{background:var(--accent); color:var(--accent-ink)}
+.wedge[data-neutral="1"] .wseg{fill:color-mix(in oklab, var(--ink-3) 15%, var(--panel))}
+.wedge[data-neutral="1"]:hover .wseg{fill:color-mix(in oklab, var(--ink-3) 26%, var(--panel))}
+.wedge[data-neutral="1"][data-on="1"] .wseg{fill:color-mix(in oklab, var(--ink-3) 36%, var(--panel)); stroke:var(--ink-3)}
+.af-link{display:inline-flex; align-items:center; gap:8px; background:none; border:0; padding:0;
+  font-family:inherit; font-size:inherit; color:var(--accent); cursor:pointer;
+  text-decoration:underline; text-underline-offset:3px; text-align:left}
+.af-link:hover{color:var(--accent-2)}
+
 @media (prefers-reduced-motion: reduce){
   html.reveal-on [data-reveal]{opacity:1 !important; transform:none !important}
 }
@@ -412,10 +428,14 @@ html.reveal-on [data-reveal].is-in{opacity:1; transform:none;
 
   <div class="dial-grid">
     <div>
+      <div class="dial-tabs" role="tablist" aria-label="どちらのダイヤル" data-reveal>
+        <button type="button" role="tab" data-dial="core" aria-selected="true"></button>
+        <button type="button" role="tab" data-dial="about" aria-selected="false"></button>
+      </div>
       <div class="dial-shell" data-reveal><svg class="dial" id="dialSvg" viewBox="0 0 800 800" role="group" aria-label="気持ちのダイヤル"></svg></div>
       <p class="eyebrow-jp" style="margin-top:18px; text-align:center">
-        内の輪＝家族 ・ 中の輪＝気持ち ・ 外の輪＝ぴったりの言葉<br>
-        <span style="letter-spacing:.1em; color:var(--ink-3)">言葉は放射状に、それぞれ読みやすい向きで並びます。上から時計回りに、明るく元気 → 明るく静か → 重く静か → 重く元気</span></p>
+        <span id="dialNote"></span><br>
+        <span id="dialNote2" style="letter-spacing:.1em; color:var(--ink-3)"></span></p>
     </div>
 
     <div class="readout" id="readout">
@@ -1248,6 +1268,225 @@ const FAMILIES = [
           ["我慢の限界","がまんのげんかい","ずっと抑えてきた","一つの出来事ではなく、積み上げが決壊した状態。最後の一件は原因ではありません。"]] } ] },
 ];
 
+const ABOUT = [
+  { key:"jibun", name:"自分", yomi:"じぶん", tone:"「自分」が評価されることを必要とする気持ち。心理学では自己意識的感情と呼ばれます。いちばん混同されやすく、その代償も大きい ——— 罪悪感と恥は、正反対の方向へ引っぱるからです。",
+    mids:[
+      { name:"罪悪感", yomi:"ざいあくかん", af:3, nubs:null,
+        def:"「悪いことをした」。行いに焦点があるので、修復のほうを向きます ——— 謝る、直す、埋め合わせる。三つのうち、いちばん動かせるものです。",
+        body:"落ち着かない。前に出たくなる。相手のほうへ引かれる。顔にはあまり出ません。",
+        need:"行動。罪悪感は、もっと落ち込むことでは満たされず、償いで満たされます。",
+        ask:"自分は何をしたのか。そして、修復はどんな形になるのか。",
+        vs:"恥と。罪悪感は行いのこと、恥は自分そのもののこと。罪悪感は傷つけた相手のほうへ向かわせ、恥はすべての人から離れさせます。罪悪感を感じやすい人は共感が育ちやすく、恥を感じやすい人は引きこもりか攻撃に向かいます（Tangney）。" },
+      { name:"恥", yomi:"はじ", af:3, nubs:null,
+        def:"「自分がだめだ」。自分の全体に焦点があるので、直すところがありません ——— 隠れる場所だけがあります。罪悪感より痛みが強く、より突然に来ます。",
+        body:"顔と首が熱い。背が丸まる。頭が下がる。目をそらす。物理的に小さく感じる。",
+        need:"それでも見られること。ひるまない人が一人いれば、恥は生き残れません。",
+        ask:"これを「自分は＿＿だ」ではなく「自分は＿＿をした」に書きかえられるか。",
+        vs:"罪悪感と。行いの文に書きかえられたなら、下にある罪悪感を見つけたということです。そちらは動かせます。" },
+      { name:"きまり悪い", yomi:"きまりわるい", af:4, nubs:null,
+        def:"人前でのちょっとした失敗 ——— つまずく、名前が出てこない、読み間違える。道徳的な重さがないので、笑いで終われます。",
+        body:"顔が赤くなる。少しの間消えたくなる。つい笑ってしまう。",
+        need:"笑われるのではなく、一緒に笑ってもらうこと。放っておいても過ぎます。",
+        ask:"規則を破ったのか、それとも不器用に見えただけなのか。",
+        vs:"恥と。きまり悪さは見ている人を必要とし、道徳的な重さを持ちません。恥はどちらも要らず、はるかに痛みます（Miller & Tangney）。" },
+      { name:"屈辱", yomi:"くつじょく", af:5, nubs:null,
+        def:"誰かに、たいてい人前で、低く置かれること。恥にはない怒りが混ざっています ——— これは、されたことだから。",
+        body:"熱い。あごが締まる。涙が近い。呆然とした感じ。",
+        need:"それが間違いだったと認められること。そして、した相手との距離。",
+        ask:"誰が自分を低く置いたのか。その判定を、自分は本当に受け入れているのか。",
+        vs:"恥と。恥は自分が自分に下す判定、屈辱は他人に下された判定です。後者を前者と間違えることが、自分への扱いの悪さに自分で同意してしまう道筋です。" },
+      { name:"誇り", yomi:"ほこり", af:1, nubs:null,
+        def:"一つの言葉に、二つの別の気持ちが同居しています。積み上げた努力に続く誇りと、才能や地位についての主張に続く誇り。",
+        body:"胸が上がる。背が伸びる。小さく勝手に笑う。二つとも同じなので、そこが問題です。",
+        need:"確かめられること。動く前に、どちらかを見ておくこと。",
+        ask:"これは、したことについてか。それとも、自分が何者かについてか。",
+        vs:"自分の二つの形と。努力の誇りは自尊心・協調性・誠実性の高さと結びつき、才能の誇りは自己愛や支配性と結びつきます（Tracy & Robins）。" },
+    ] },
+  { key:"sentaku", name:"選択", yomi:"せんたく", tone:"起きなかったもう一つの筋書きを必要とする気持ち。すべて反事実的で、見分けがつくと、次にすることが変わります。",
+    mids:[
+      { name:"後悔", yomi:"こうかい", af:3, nubs:null,
+        def:"「別のほうを選ぶべきだった」。決定に焦点があります。自分に責任があったことと、より良い道がはっきり思い描けることが条件です。",
+        body:"沈む。何度も再生する。巻き戻したくなる。眠りを妨げます。",
+        need:"教訓を取り出して、手放すこと。後悔の役目は、次の決定をよくすることだけです。",
+        ask:"何を別にするか。そしてその選択は、まだどこかに残っているか。",
+        vs:"がっかりと。後悔は自分の決定について、がっかりは結果について（van Dijk & Zeelenberg）。形も知っておく価値があります ——— したことへの後悔は最初がいちばん痛く、しなかったことへの後悔は何十年も残ります（Gilovich & Medvec）。そして後悔は、まだ可能性が見えている場所に集まります（Roese & Summerville）。" },
+      { name:"悔恨", yomi:"かいこん", af:3, nubs:null,
+        def:"向こう側に人がいる後悔。道徳的な重さを持ち、より良く選べたことではなく、償いのほうへ引っぱります。",
+        body:"胸が重い。目を合わせにくい。その人に話したくなる。",
+        need:"実際の相手との修復。それが可能で、望まれている場合に。",
+        ask:"誰が傷ついたのか。そして、自分が楽になることではなく、その人が必要としているものは何か。",
+        vs:"後悔と。髪を切ったことは後悔できます。悔恨は、誰かが傷ついたことを条件とするので、反省より先を求めます。" },
+      { name:"がっかり", yomi:"がっかり", af:3, nubs:null,
+        def:"結果が思っていたより悪く、しかもそれは自分の選択ではなかった。結果に焦点があり、状況の側の話で、責任を必要としません。",
+        body:"力が抜ける。落ちる。肩が下がる。後悔より静かです。",
+        need:"期待そのものを見送ること。そして、その期待が妥当だったか確かめること。",
+        ask:"自分は何を期待していたか。そして、これを実際に決めたのは誰か、何か。",
+        vs:"後悔と。誰も別の選択をしようがなかったなら、それはがっかりです。自分を調べても何も出てきません ——— 調べるべき決定が存在しないからです。" },
+      { name:"安堵", yomi:"あんど", af:2, nubs:null,
+        def:"悪いほうの筋書きが、起きなかった。心地よいけれど、そのすれすれの筋書きがあってはじめて成立します。",
+        body:"長い息が出る。脚の力が抜ける。急に疲れが来る。",
+        need:"気づかれること。安堵はすぐ消えて、ほとんど記録されません。",
+        ask:"いま何を避けられたのか。その怖さを、思っていたより長く持っていなかったか。",
+        vs:"うれしさと。安堵は「避けられたもの」で決まります。想像上の悪い結果を取り除くと、何も残りません。" },
+      { name:"迷い", yomi:"まよい", af:4, nubs:null,
+        def:"どちらにも本当の代償がある二つの選択肢。そして決定はまだ開いている。これは後悔になる前の状態 ——— のちの後悔の材料そのものです。",
+        body:"考えが回る。身体が落ち着かない。ほかのことを始められない。",
+        need:"両側を紙に書くこと。迷いは頭の中より、紙の上でずっと小さくなります。",
+        ask:"どちらに行くと何を失うか。そして、どちらの損失なら生きていけるか。",
+        vs:"不安と。不安には分かれ道がありません。迷いにはちょうど二本あり、その両方に名前をつけると、たいてい縮みます。" },
+    ] },
+  { key:"aite", name:"相手", yomi:"あいて", tone:"部屋にもう一人いることを必要とする気持ち。たいていは何かを持っている人、持っていない人、あるいは苦しんでいる人。比較と、いたわりの両方がここにあります。",
+    mids:[
+      { name:"羨ましい", yomi:"うらやましい", af:5, nubs:null,
+        def:"あの人は持っていて、自分は持っていない。二つの方向に走ります ——— 自分を上に引き上げる方向（もっとやる、差を詰める）と、相手を下に引き下げる方向（失えばいいと思う）。",
+        body:"すっぱい締まり。気前よくできない。注意が相手に貼りつく。",
+        need:"どちらの方向に走っているか見きわめて、上向きのほうを使うこと。",
+        ask:"自分が欲しいのは、あの人の持っているものか。それとも、あの人が持っていないことか。",
+        vs:"嫉妬と。羨望は二人と、自分に欠けているもの。方向も重要で、上向きは努力と自己改善を、下向きは相手の足を引くことを予測します（van de Ven, Zeelenberg & Pieters）。" },
+      { name:"嫉妬", yomi:"しっと", af:4, nubs:null,
+        def:"自分は持っていて、誰かに取られるかもしれない。三者を必要とします ——— 自分、大事なもの、そして競争相手。",
+        body:"過敏になる。確かめたくなる。胸が締まる。追われている感じ。",
+        need:"見張るのではなく、その怖さを本人に言葉で伝えること。",
+        ask:"自分は何を失うのが怖いのか。そして、誰に。",
+        vs:"羨望と。人数を数えてください。二人なら羨望、三人なら嫉妬。必要な会話がまったく違います。" },
+      { name:"恨み", yomi:"うらみ", af:5, nubs:null,
+        def:"認められないままの古い傷が、いまも利息を生んでいる状態。放たれずに静かになった怒りです。",
+        body:"抑えている感じ。皮肉が勝手に出る。その人のそばで疲れる。",
+        need:"元の傷に名前をつけること ——— 可能なら相手に、無理なら自分に。",
+        ask:"自分はまだ何を受け取っていないのか。そして、それを一度でも実際に求めたことがあるか。",
+        vs:"怒りと。怒りは現在のもので、放たれます。恨みは保管され、積み上がります。だから出来事より何年も長く残ります。" },
+      { name:"憧れ", yomi:"あこがれ", af:0, nubs:null,
+        def:"あの人は持っていて、自分はそれを喜べる。羨望と同じ比較をしていて、痛みだけがない ——— たいていそれは、差が自分への判定に感じられていないということです。",
+        body:"あたたかい。見ていたくなる。学びたくなる。締まらず、開いています。",
+        need:"表に出すこと。声にすると、気持ちではなく関係になります。",
+        ask:"あの人がしていることのうち、自分が学びたいのはどれか。",
+        vs:"羨望と。まったく同じ状況で、評価だけが違います。憧れは、比較が自分への判決に読めなくなったときの羨望です。" },
+      { name:"軽蔑", yomi:"けいべつ", af:5, nubs:null,
+        def:"相手を人ごと見下ろすこと。「あなたは間違ったことをした」ではなく「あなたは自分より下だ」。目を回す、あざける、上からの皮肉として出ます。",
+        body:"冷たく、閉じた感じ。身体より顔に出ます ——— 片側だけ上がる唇。",
+        need:"警告として非常に真剣に受け取り、下にある傷までたどること。",
+        ask:"相手が何をしたことを、自分は「相手がどういう人か」に変えてしまったのか。",
+        vs:"怒りと。怒りは相手を、自分に何かをした対等な人として扱います。軽蔑はすでに格下げしています。これは小さな違いではありません ——— ゴットマンの四十年の夫婦研究で、軽蔑は離婚のもっとも強い予測因子です。" },
+      { name:"慈しみ", yomi:"いつくしみ", af:2, nubs:null,
+        def:"相手の苦しみが届いて、その人のほうへ動く。あたたかさ、近づくこと、そして実際に何かできるだけの落ち着きが残っている助けたさ。",
+        body:"胸があたたかく開く。落ち着いている。前に傾く。苦しくはありません。",
+        need:"小さくてもいいので、行動する場所。",
+        ask:"自分はその人と一緒にいるのか。それとも、隣で溺れているのか。",
+        vs:"共感疲労と。相手の痛みを自分の痛みとして感じると、引きこもりと燃え尽きに向かいます。慈しみはまったく別の脳のはたらきで動き、訓練できます（Klimecki, Leiberg, Ricard & Singer）。Singer と Klimecki は「共感疲労」という語自体が誤りで、人を焼き切るのは共感的苦痛だと論じています。人を支える仕事をしているなら、このダイヤルでいちばん役に立つ区別です。" },
+    ] },
+  { key:"michi", name:"未知", yomi:"みち", tone:"押し返す相手としての、信念や予想を必要とする気持ち。心理学では知識感情と呼ばれ、学びの邪魔ではなく、学びの原動力です。",
+    mids:[
+      { name:"好奇心", yomi:"こうきしん", af:0, nubs:null,
+        def:"埋めたい特定の隙間。狭く、少しかゆい ——— 問いを指しています。",
+        body:"前に傾く。注意が速くなる。そのほうへ引かれる。",
+        need:"追いかける許可と、答えに届くだけの時間。",
+        ask:"自分は具体的に、何を知りたいのか。",
+        vs:"興味と。好奇心は答えを求め、得られると終わります。興味は留まりたがり、何年も続きます。" },
+      { name:"興味", yomi:"きょうみ", af:0, nubs:null,
+        def:"新しくて、ついていける。評価は「新しさが高い」＋「わかりやすさも足りている」。",
+        body:"没入している。静か。時間がなくなる。呼吸が楽。",
+        need:"邪魔されないこと。",
+        ask:"これに留まる価値をつくっているのは何か。",
+        vs:"戸惑いと。新しさは同じで、分かれ目は「意味が取れるか」だけです。取れる新しさは興味になり、取れない新しさは戸惑いになります（Silvia）。" },
+      { name:"戸惑い", yomi:"とまどい", af:4, nubs:null,
+        def:"新しくて、まだついていけない。不快で、しかももっとも生産的な状態のひとつ ——— 自分の知っていることの、ちょうど端を示しています。",
+        body:"眉が寄る。止まる。同じ行を読み返す。目のうしろに軽い圧。",
+        need:"もっと小さい一片、または別の説明 ——— 同じ説明の量を増やすことではありません。",
+        ask:"ここで最初に本当に分からなくなったのは、どこか。",
+        vs:"「頭が悪い」と。戸惑いは、自分の端がいまどこにあるかという情報で、学びの前に確実に現れます。子どもには言葉にして教える価値があります ——— ほとんどの子は、これを判決として読みます。" },
+      { name:"驚き", yomi:"おどろき", af:0, nubs:null,
+        def:"世界についての自分の模型が外れた。このダイヤルでいちばん短命で、唯一ほんとうに中立なもの ——— 驚きは、続いて来るものから色をもらいます。",
+        body:"眉が上がる。息を吸う。一瞬止まる。数秒で終わります。",
+        need:"何に変わるのかを見るための、ひと呼吸。",
+        ask:"一秒前に信じていて、実は違ったことは何か。",
+        vs:"衝撃と。驚きは数秒で別のものに変わります。まだここにあるなら、名前をつけるべきは変わった先のほうです。" },
+      { name:"畏敬", yomi:"いけい", af:2, nubs:null,
+        def:"持ってきた枠に収まらないほど大きいもの。二つの成分 ——— 広大さと、それを収めるために頭の中の家具を並べ替える必要。",
+        body:"胸が開く。ぞくっとする。止まった感じ。涙が出ることもあります。",
+        need:"時間。そして、すぐ説明されないこと。",
+        ask:"いま、自分の用意していた場所より大きかったのは何か。",
+        vs:"驚きと。驚きは「模型が間違っていた」と言い、畏敬は「模型が小さすぎる」と言います（Keltner & Haidt）。畏敬は自分への注目を確実に下げ、人とつながっている感じを上げます。" },
+    ] },
+  { key:"keno", name:"嫌悪", yomi:"けんお", tone:"退けること ——— もとの気持ちの輪が丸ごと落としている家族です。嫌悪はもっとも確立した基本感情のひとつなのに。腐った食べ物から、道徳の侵害まで届きます。",
+    mids:[
+      { name:"気持ち悪い", yomi:"きもちわるい", af:5, nubs:null,
+        def:"口と胃のレベルでの拒否 ——— 腐っている、汚れている、混ざってはいけない。ここでいちばん古く、いちばん身体的なものです。",
+        body:"鼻にしわ。上唇が上がる。吐き気。顔をそむける。",
+        need:"距離。これはたいてい、従っておくのが正解です。",
+        ask:"自分の中から、あるいは自分から遠ざけたいものは何か。",
+        vs:"「好きではない」と。嫌悪は身体が何かを外に出したがることを含みます。好みは好みだけで、吐き気は伴いません。" },
+      { name:"おぞましい", yomi:"おぞましい", af:4, nubs:null,
+        def:"身体が身体として突きつけられること ——— 傷、けが、死。ロジンはこれを「動物であることの想起」と呼びました。指しているのは、自分自身が死ぬということです。",
+        body:"血の気が引く。冷える。手が湿る。目をそらす必要。",
+        need:"目をそらすこと。そして、そらすことを責められないこと。",
+        ask:"これは危険の話か。それとも、自分が何でできているかを思い出させられた話か。",
+        vs:"怖さと。怖さは「傷つけられるかもしれない」と言い、おぞましさは「近くに置きたくない」と言います。脅威がまったくないときにも来ます。" },
+      { name:"義憤", yomi:"ぎふん", af:5, nubs:null,
+        def:"自分が持っている基準が破られた。しかも、自分に対してとは限らない。傷ではなく、規則のための怒りです。",
+        body:"背が立つ。力が湧く。言いたくなる。個人的な怒りより澄んでいます。",
+        need:"狙いのある出口。これはいちばん役に立つ怒りです。",
+        ask:"どの原則が破られたのか。それを守ることは、実際に何をすることか。",
+        vs:"個人的な怒りと。義憤は、自分が被害者でなくても成立します。だからこそ、やる価値のあることのほとんどを動かしているのがこれです。" },
+      { name:"感銘", yomi:"かんめい", af:0, nubs:null,
+        def:"誰かが本当に善いことをするのを見て、持ち上げられ、自分も善くありたくなる。道徳的嫌悪の、反対側の極です。",
+        body:"胸があたたかい。のどが締まる。涙が出ることもある。広がる感じ。",
+        need:"早めに行動に移すこと ——— そうすると、気前のよさに変わります。",
+        ask:"いま誰の何を見たのか。それは、自分に何をしたくさせたか。",
+        vs:"憧れと。憧れは技量に向き、感銘は善さに向きます。そして感銘は、人を助けたい気持ちを実際に強めます（Haidt）。" },
+    ] },
+  { key:"fuzai", name:"不在", yomi:"ふざい", tone:"欠けていることを必要とする気持ち ——— かつてここにあったもの、あるはずのもの、手の届かないもの。うつと最も混同されやすい二つも、ここにあります。",
+    mids:[
+      { name:"懐かしさ", yomi:"なつかしさ", af:2, nubs:null,
+        def:"もう戻らない、そして良かった過去。ほろ苦いけれど、証拠は「苦いより甘い」と一貫していて、ただ痛むのではなく実際に仕事をします。",
+        body:"胸のあたたかい重み。視線が遠くなる。呼吸が遅くなる。",
+        need:"分け合われること。その場にいた人と声に出すと、いちばんよく働きます。",
+        ask:"あのとき自分は何の一部だったのか。そのうち、いまも持っているものは何か。",
+        vs:"悲しさと。懐かしさは弱い悲しさではなく、資源です。人とのつながりの感覚を上げ、次に「かつての自分と今の自分がつながっている感覚」を上げ、その両方を通して人生の意味を上げます（Sedikides & Wildschut）。" },
+      { name:"恋しさ", yomi:"こいしさ", af:3, nubs:null,
+        def:"名前は言えるのに手に入らないものへ、手を伸ばしている状態 ——— 人、場所、あるいは仮定のままだった自分の人生。",
+        body:"向きのある痛み。胸とのど。夜にひどくなります。",
+        need:"言い争うのではなく、認めること。ときには見送ること。",
+        ask:"自分は何に手を伸ばしているのか。そのどこかに、届く部分はあるか。",
+        vs:"懐かしさと。懐かしさは後ろを向いて、あたたかい。恋しさはまだ欲しいものを指していて、痛みます。" },
+      { name:"胸が重い", yomi:"むねがおもい", af:3, nubs:null,
+        def:"重さのある悲しみ。この重さはただの言い回しではありません ——— 関係は双方向で、物理的に重いものを持つと、人は測れるほど悲しくなります。別の感情というより、身体を通して正直に報告された悲しみです。",
+        body:"名前のとおり。胸の重さ、手足の遅さ、動くこと自体の負担。",
+        need:"持つものを減らすこと。両方の意味で。",
+        ask:"自分は何を持っているのか。そのうち、本当に自分が持つべきものはどれだけか。",
+        vs:"うつと。胸の重さには、聞かれれば言える対象があります。対象がなく、何週間も続いているなら、それは良い言葉を探すよりも、専門家の目を向けるべきものです。" },
+      { name:"退屈", yomi:"たいくつ", af:3, nubs:null,
+        def:"没入したいのに、注意がどこにも着地しない。トルストイの言う「欲望への欲望」で、その「したい」が残っていることが、まさに苦しさの正体です。",
+        body:"落ち着かない。そわそわする。時間が延びる。何も魅力的でない。",
+        need:"難しさの釣り合い ——— 易しすぎても難しすぎても、これになります。",
+        ask:"没入したいのにできないのか。それとも、何も欲しくないのか。",
+        vs:"無関心と。退屈にはまだ「したい」が含まれていて、無関心はそれを失っています（Eastwood）。この違いが助けになるものを決めます ——— 刺激は退屈には届き、無関心には何もしません。" },
+      { name:"無関心", yomi:"むかんしん", af:3, nubs:null,
+        def:"「したい」そのものが静かになった状態。落ち着かないのではなく、平らで、この瞬間だけでなく全般に興味がない。",
+        body:"静か。ゆるい。穏やかではない形で、何も気にならない。何にも引かれません。",
+        need:"真剣に受け取られること。よく眠った日を何週も越えて続いているなら、とくに。",
+        ask:"最後に何かを欲しいと思ったのはいつか。そのころ、何があったか。",
+        vs:"退屈と、そして穏やかさと。無関心は何も欲しくないので、活動を並べても届きません。そして落ち着きとは違い、休まりません。続く無関心は、専門家との会話に持っていくものです。" },
+    ] },
+];
+
+/* ── two dial faces on one instrument ──
+   Dial one asks what a feeling is in the body (core affect: valence x arousal).
+   Dial two asks what it is ABOUT — feelings needing a further appraisal: a self
+   being judged, a choice, another person, not-knowing, revulsion, an absence.
+   Colour keeps meaning the same thing on both: every dial-two feeling is painted
+   with the hue of its nearest affect family, so position carries the new axis
+   and hue still says where it lands in the body. */
+const DIALS = {
+  core:  { rings:3, fams:FAMILIES, tab:"身体では何か",  note:"内の輪＝家族 ・ 中の輪＝気持ち ・ 外の輪＝ぴったりの言葉",
+           note2:"言葉は放射状に、それぞれ読みやすい向きで並びます。上から時計回りに、明るく元気 → 明るく静か → 重く静か → 重く元気"  },
+  about: { rings:2, fams:ABOUT,    tab:"何についてか", note:"内の輪＝その気持ちが必要とするもの ・ 外の輪＝気持ち（色は、身体のダイヤルでいちばん近い家族）",
+           note2:"快・不快と元気の高低だけでは足りない、六つの必要" },
+};
+let dialKey = "core";
+const DL   = () => DIALS[dialKey];
+const FAMS = () => DL().fams;
+const isAbout = () => dialKey === "about";
+
 const BODY_CHIPS = ["胸が詰まる","おなかが空っぽ","のどが締まる","あごを噛んでいる","肩が上がっている",
   "手がざわざわ","顔が熱い","手足が重い","息が浅い","じっとできない","目のうしろ","どこか分からない"];
 
@@ -1327,11 +1566,11 @@ function buildDial(){
   svg.appendChild(rim);
 
   const gRings = el("g");
-  FAMILIES.forEach((F,fi)=>{
+  FAMS().forEach((F,fi)=>{
     const fa0 = -90 + fi*60, fa1 = fa0 + 60;
 
     /* core — horizontal at the centroid: these six are the anchors, so legibility wins */
-    const wCore = el("g",{ class:"wedge", "data-kind":"core", "data-fi":fi, tabindex:"0",
+    const wCore = el("g",{ class:"wedge", "data-kind":"core", "data-fi":fi, tabindex:"0", "data-neutral":isAbout()?"1":"0",
       role:"button", "aria-label":`${F.name}（${F.yomi}）気持ちの家族`, style:`--c:${famVar(fi)}` });
     wCore.appendChild(el("path",{class:"wseg", d:sector(R1[0],R1[1],fa0+PAD,fa1-PAD)}));
     const cr=(R1[0]+R1[1])/2, ca=rad(fa0+30);
@@ -1340,21 +1579,26 @@ function buildDial(){
     ct.textContent = F.name; cg.appendChild(ct); wCore.appendChild(cg);
     gRings.appendChild(wCore);
 
+    const step = 60 / F.mids.length;          // 家族ごとに 4〜6 の気持ち
     F.mids.forEach((M,mi)=>{
-      const ma0 = fa0 + mi*15;
+      const ma0 = fa0 + mi*step;
+      const hue = isAbout() ? famVar(M.af) : famVar(fi);
       const w = el("g",{ class:"wedge", "data-kind":"mid", "data-fi":fi, "data-mi":mi, tabindex:"0",
-        role:"button", "aria-label":`${M.name}（${M.yomi}）${F.name}の気持ち`, style:`--c:${famVar(fi)}` });
-      w.appendChild(el("path",{class:"wseg", d:sector(R2[0],R2[1],ma0+PAD,ma0+15-PAD)}));
-      w.appendChild(stackLabel(M.name,"wl-mid",R2[0],ma0+7.5,MID_SLOT,10));
+        role:"button", "aria-label":`${M.name}（${M.yomi}）${F.name}の気持ち`, style:`--c:${hue}` });
+      const RB = DL().rings===3 ? R2 : [R2[0],R3[1]];   // 三つめの輪がない面は、その分を使う
+      w.appendChild(el("path",{class:"wseg", d:sector(RB[0],RB[1],ma0+PAD,ma0+step-PAD)}));
+      w.appendChild(stackLabel(M.name,"wl-mid",RB[0],ma0+step/2,MID_SLOT,10));
       gRings.appendChild(w);
     });
   });
   svg.appendChild(gRings);
 
-  const guide=el("g",{"aria-hidden":"true"});
-  [R3[0],R3[1]].forEach(r=>guide.appendChild(
-    el("circle",{cx:C, cy:C, r, fill:"none", stroke:"var(--rule)", "stroke-width":"1"})));
-  svg.appendChild(guide);
+  if(DL().rings===3){
+    const guide=el("g",{"aria-hidden":"true"});
+    [R3[0],R3[1]].forEach(r=>guide.appendChild(
+      el("circle",{cx:C, cy:C, r, fill:"none", stroke:"var(--rule)", "stroke-width":"1"})));
+    svg.appendChild(guide);
+  }
   svg.appendChild(el("g",{id:"nubRing"}));
 
   const hub = el("g",{id:"hub","aria-hidden":"true"});
@@ -1390,8 +1634,8 @@ function paintDial(){
 
 function drawNubRing(){
   const g=$("#nubRing"); g.textContent="";
-  if(sel.fi===null) return;
-  const F=FAMILIES[sel.fi], fa0 = -90 + sel.fi*60;
+  if(DL().rings!==3 || sel.fi===null) return;
+  const F=FAMS()[sel.fi], fa0 = -90 + sel.fi*60;
   F.mids.forEach((M,mi)=>{
     M.nubs.forEach(([word,yomi],ni)=>{
       const a0 = fa0 + mi*15 + ni*5;
@@ -1407,6 +1651,16 @@ function drawNubRing(){
       g.appendChild(w);
     });
   });
+}
+
+function switchDial(key, fi, mi){
+  dialKey = key;
+  highlightFams = [];
+  sel = { fi:(fi??null), mi:(mi??null), ni:null };
+  $$(".dial-tabs button").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.dial===key)));
+  const t=$("#dialNote"); if(t) t.textContent = DL().note;
+  const t2=$("#dialNote2"); if(t2) t2.textContent = DL().note2;
+  buildDial(); buildVocab(); renderReadout();
 }
 
 function select(fi,mi,ni){
@@ -1432,7 +1686,13 @@ function renderReadout(){
   if(sel.fi===null){
     chip.style.setProperty("--c","var(--accent)");
     chipT.textContent="まだ選ばれていません"; kana.textContent=""; name.textContent="どこから始めても";
-    body.innerHTML = `<p style="color:var(--ink-2)">内側の輪から家族を一つ押してください。
+    body.innerHTML = isAbout() ? `<p style="color:var(--ink-2)">内側の輪から家族を一つ押してください。
+      この六つは気分ではなく、その気持ちが存在するために<span class="em">必要とするもの</span>です ———
+      評価される自分、自分がした選択、相手、わからないこと、退けたいもの、失われたもの。</p>
+      <p style="color:var(--ink-3); font-size:14.5px; margin-top:16px">外の言葉にはそれぞれ色があり、
+      その色は、身体のダイヤルでどこに落ちるかを示します。位置が「何についてか」を、
+      色が「どんな感じか」を伝えます。</p>`
+      : `<p style="color:var(--ink-2)">内側の輪から家族を一つ押してください。
       だいたいの場所が分かっているなら、中の輪へ直接どうぞ。入口に正解はありません ———
       これは検査ではなく、語彙です。</p>
       <p style="color:var(--ink-3); font-size:15px; margin-top:16px">どこから始めるか分からないときは、
@@ -1442,9 +1702,10 @@ function renderReadout(){
     return;
   }
 
-  const F=FAMILIES[sel.fi];
+  const F=FAMS()[sel.fi];
   chip.style.setProperty("--c",famVar(sel.fi));
-  chipT.textContent = `${F.name} ・ ${F.v} ・ エネルギーは${F.a}`;
+  chipT.textContent = isAbout() ? `必要とするもの ・ ${F.name}`
+    : `${F.name} ・ ${F.v} ・ エネルギーは${F.a}`;
 
   if(sel.mi===null){
     kana.textContent = F.yomi;
@@ -1453,14 +1714,39 @@ function renderReadout(){
       <dl style="margin:22px 0 0">
         <div class="field"><dt>この中に</dt><dd>${F.mids.map(m=>esc(m.name)).join(" ・ ")}</dd></div>
       </dl>
-      <p style="color:var(--ink-3); font-size:14.5px; margin-top:18px">来たものを選んでください。
-      家族は語彙を整えるための取り決めで、脳がこう分類しているという主張ではありません ———
-      二つの家族にまたがる言葉があるのは、間違いではなく、本当のことです。</p>`;
+      <p style="color:var(--ink-3); font-size:14.5px; margin-top:18px">${isAbout()
+        ? "どれも、快か不快か・元気が高いか低いかだけでは足りない評価を必要とします。だから一つめの面に詰め込まず、二つめの面に置いてあります。"
+        : "来たものを選んでください。家族は語彙を整えるための取り決めで、脳がこう分類しているという主張ではありません ——— 二つの家族にまたがる言葉があるのは、間違いではなく、本当のことです。"}</p>`;
     acts.innerHTML=""; hubText("かぞく",F.name,`${F.mids.length}の気持ち`);
     return;
   }
 
   const M=F.mids[sel.mi];
+
+  if(isAbout()){
+    const AF = FAMILIES[M.af];
+    kana.textContent = M.yomi;
+    name.textContent = M.name;
+    body.innerHTML = `
+      <dl style="margin:0">
+        <div class="field"><dt>どういうもの</dt><dd>${esc(M.def)}</dd></div>
+        <div class="field"><dt>混同しやすい</dt><dd>${esc(M.vs)}</dd></div>
+        <div class="field"><dt>身体では</dt><dd>${esc(M.body)}</dd></div>
+        <div class="field"><dt>求めているもの</dt><dd>${esc(M.need)}</dd></div>
+        <div class="field"><dt>自分に聞く</dt><dd>${esc(M.ask)}</dd></div>
+        <div class="field"><dt>身体のダイヤルでは</dt><dd><button class="af-link" id="afJump">
+          <span class="dot" style="--c:${famVar(M.af)}"></span>いちばん近いのは${esc(AF.name)} ——— そこで開く
+        </button></dd></div>
+      </dl>`;
+    acts.innerHTML = `<button class="btn btn-primary" id="useWord">「${esc(M.name)}」を記録する →</button>
+                      <button class="btn btn-quiet" id="clearSel">選択を外す</button>`;
+    hubText(F.name, M.name, AF.name);
+    $("#afJump").addEventListener("click",()=>switchDial("core",M.af,null));
+    $("#useWord").addEventListener("click",()=>prefill(M.name,M.af));
+    $("#clearSel").addEventListener("click",()=>select(null,null,null));
+    return;
+  }
+
   const N = sel.ni!==null ? M.nubs[sel.ni] : null;   // [言葉, 読み, ちがい, 説明]
   const word = N ? N[0] : M.name;
   kana.textContent = N ? N[1] : M.yomi;
@@ -1503,12 +1789,12 @@ function renderReadout(){
 }
 
 function buildVocab(){
-  $("#vocabList").innerHTML = FAMILIES.map((F,fi)=>`
+  $("#vocabList").innerHTML = FAMS().map((F,fi)=>`
     <div>
       <h4><span class="dot" style="--c:${famVar(fi)}"></span>${esc(F.name)}<span class="kana">${esc(F.yomi)}</span></h4>
       <ul>${F.mids.map((M,mi)=>
         `<li><button data-f="${fi}" data-m="${mi}">${esc(M.name)}</button></li>` +
-        M.nubs.map(([n],ni)=>`<li><button data-f="${fi}" data-m="${mi}" data-n="${ni}">${esc(n)}</button></li>`).join("")
+        (M.nubs||[]).map(([n],ni)=>`<li><button data-f="${fi}" data-m="${mi}" data-n="${ni}">${esc(n)}</button></li>`).join("")
       ).join("")}</ul>
     </div>`).join("");
   $$("#vocabList button").forEach(b=>b.addEventListener("click",()=>{
@@ -1839,6 +2125,13 @@ $("#retBtn").addEventListener("click",()=>{
   },{ rootMargin:"0px 0px -6% 0px", threshold:0.06 });
   items.forEach(elm=>io.observe(elm));
 })();
+
+$$(".dial-tabs button").forEach(b=>{
+  b.textContent = DIALS[b.dataset.dial].tab;
+  b.addEventListener("click",()=>{ if(dialKey!==b.dataset.dial) switchDial(b.dataset.dial,null,null); });
+});
+$("#dialNote").textContent = DL().note;
+$("#dialNote2").textContent = DL().note2;
 
 buildDial(); buildVocab(); renderReadout(); renderLog();
 </script>
