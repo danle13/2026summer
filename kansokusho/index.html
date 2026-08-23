@@ -371,6 +371,21 @@ html.reveal-on [data-reveal].is-in{opacity:1; transform:none;
   text-decoration:underline; text-underline-offset:3px; text-align:left}
 .af-link:hover{color:var(--accent-2)}
 
+/* “touch to feel” — a calm affordance so the dial reads as interactive.
+   Decorative only: every wedge is already a real button. */
+.touch-hint{display:flex; flex-direction:column; align-items:center; gap:5px;
+  margin:0 0 10px; color:var(--accent); pointer-events:none;
+  transition:opacity .55s ease, visibility .55s}
+.touch-hint.gone{opacity:0; visibility:hidden}
+.touch-hint svg{display:block}
+.touch-hint .th-tri{fill:var(--accent)}
+@media (prefers-reduced-motion: no-preference){
+  .touch-hint{animation:th-breathe 2.8s ease-in-out infinite}
+  .touch-hint svg{animation:th-drift 2.8s ease-in-out infinite}
+}
+@keyframes th-breathe{0%,100%{opacity:.42} 50%{opacity:1}}
+@keyframes th-drift{0%,100%{transform:translateY(-2px)} 50%{transform:translateY(3px)}}
+
 @media (prefers-reduced-motion: reduce){
   html.reveal-on [data-reveal]{opacity:1 !important; transform:none !important}
 }
@@ -432,6 +447,10 @@ html.reveal-on [data-reveal].is-in{opacity:1; transform:none;
         <button type="button" role="tab" data-dial="core" aria-selected="true"></button>
         <button type="button" role="tab" data-dial="about" aria-selected="false"></button>
       </div>
+      <p class="touch-hint" id="touchHint" aria-hidden="true">
+        <span class="eyebrow-jp" style="color:var(--accent)">さわってみて</span>
+        <svg width="20" height="11" viewBox="0 0 20 11" aria-hidden="true"><path class="th-tri" d="M10 11 L0 0 L20 0 Z"/></svg>
+      </p>
       <div class="dial-shell" data-reveal><svg class="dial" id="dialSvg" viewBox="0 0 800 800" role="group" aria-label="気持ちのダイヤル"></svg></div>
       <p class="eyebrow-jp" style="margin-top:18px; text-align:center">
         <span id="dialNote"></span><br>
@@ -1830,7 +1849,9 @@ $$("#quad button").forEach(b=>b.addEventListener("click",()=>{
   picked.quad = already ? null : i;
   if(!already) b.setAttribute("aria-pressed","true");
   highlightFams = already ? [] : QUADS[i].fams;
-  sel={fi:null,mi:null,ni:null}; paintDial(); renderReadout();
+  keepInPlace($("#quad"), ()=>{
+    sel={fi:null,mi:null,ni:null}; paintDial(); renderReadout();
+  });
 }));
 
 $("#toDial").addEventListener("click",()=>{
@@ -2132,6 +2153,26 @@ $$(".dial-tabs button").forEach(b=>{
 });
 $("#dialNote").textContent = DL().note;
 $("#dialNote2").textContent = DL().note2;
+
+/* ── the dial hint, and keeping the page still ── */
+(function(){
+  const hint=$("#touchHint"); if(!hint) return;
+  let done=false;
+  const dismiss=()=>{ if(done) return; done=true; hint.classList.add("gone"); };
+  svg.addEventListener("pointerdown",dismiss);
+  svg.addEventListener("keydown",dismiss);
+  $$(".dial-tabs button").forEach(b=>b.addEventListener("click",dismiss));
+})();
+
+/** Run fn, then scroll so `anchor` stays exactly where it was on screen.
+    Re-rendering the dial readout changes the height of a block ABOVE the
+    naming ladder, which slides everything below it out from under the reader. */
+function keepInPlace(anchor, fn){
+  const before = anchor.getBoundingClientRect().top;
+  fn();
+  const delta = anchor.getBoundingClientRect().top - before;
+  if(Math.abs(delta) > 1) window.scrollBy(0, delta);
+}
 
 buildDial(); buildVocab(); renderReadout(); renderLog();
 </script>
