@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="An interactive feeling wheel, naming prompts, a private check-in ledger, and timed presence practices.">
+<meta name="description" content="An interactive feeling wheel with a distinct explanation for every word, naming prompts, a private check-in ledger, and timed presence practices.">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img,svg{max-width:100%}</style>
 </head>
 <body>
@@ -361,6 +361,30 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
   .foot-in{padding:28px 18px 38px}
 }
 
+/* sibling comparison — how the three precise words actually differ */
+.sibs{display:flex; flex-direction:column; gap:3px}
+.sib{display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:baseline; text-align:left;
+  background:var(--sunk); border:1px solid var(--rule); border-left:2px solid var(--rule-2);
+  border-radius:2px; padding:9px 12px; cursor:pointer; font-family:inherit; color:var(--ink);
+  transition:border-color .15s, background .15s}
+.sib:hover{border-color:var(--ink-3)}
+.sib[aria-pressed="true"]{background:var(--accent-wash); border-color:var(--accent); border-left-color:var(--accent)}
+.sib .sw{font-size:15.5px; font-weight:500; white-space:nowrap}
+.sib .st{font-size:13px; color:var(--ink-3); line-height:1.55}
+.sib[aria-pressed="true"] .st{color:var(--ink-2)}
+.sib-note{font-size:13px; color:var(--ink-3); line-height:1.65; margin-top:14px;
+  border-top:1px dashed var(--rule); padding-top:12px}
+@media (max-width:520px){ .sib{grid-template-columns:1fr; gap:3px} .sib .sw{white-space:normal} }
+
+/* block-style scroll reveal — enabled only once JS is running, so the page
+   is fully visible if scripts fail or IntersectionObserver is missing */
+html.reveal-on [data-reveal]{opacity:0; transform:translateY(22px)}
+html.reveal-on [data-reveal].is-in{opacity:1; transform:none;
+  transition:opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1)}
+@media (prefers-reduced-motion: reduce){
+  html.reveal-on [data-reveal]{opacity:1 !important; transform:none !important}
+}
+
 @media (prefers-reduced-motion: reduce){
   *{animation-duration:.001ms !important; transition-duration:.001ms !important}
 }
@@ -403,7 +427,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
 
 <!-- ══════════════════ THE DIAL ══════════════════ -->
 <section id="dial"><div class="wrap">
-  <header>
+  <header data-reveal>
     <p class="eyebrow">01 — The instrument</p>
     <h2 class="sec-title">The dial</h2>
     <p class="sec-lede">Six families in the hub ring, ordered the way affect actually varies — pleasant to
@@ -414,7 +438,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
 
   <div class="dial-grid">
     <div>
-      <div class="dial-shell"><svg class="dial" id="dialSvg" viewBox="0 0 760 760" role="group" aria-label="Interactive feeling dial"></svg></div>
+      <div class="dial-shell" data-reveal><svg class="dial" id="dialSvg" viewBox="0 0 760 760" role="group" aria-label="Interactive feeling dial"></svg></div>
       <p class="eyebrow" style="margin-top:16px; text-align:center; line-height:1.7">
         Inner ring: family · Middle: feeling · Outer: the precise word<br>
         <span style="text-transform:none; letter-spacing:.02em">Reading clockwise from the top — pleasant &amp; energized → pleasant &amp; quiet → unpleasant &amp; quiet → unpleasant &amp; energized</span>
@@ -439,7 +463,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
 
 <!-- ══════════════════ NAMING LADDER ══════════════════ -->
 <section id="name"><div class="wrap">
-  <header>
+  <header data-reveal>
     <p class="eyebrow">02 — When the word won't come</p>
     <h2 class="sec-title">Five rungs to a name</h2>
     <p class="sec-lede">Most people reach for the label first and land on <em>fine</em>, <em>stressed</em>,
@@ -449,7 +473,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
 
   <div class="rungs">
 
-    <div class="rung">
+    <div class="rung" data-reveal>
       <div class="rung-n">1</div>
       <div class="stack g14">
         <h3>Find it in your body before you name it</h3>
@@ -465,7 +489,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
       </div>
     </div>
 
-    <div class="rung">
+    <div class="rung" data-reveal>
       <div class="rung-n">2</div>
       <div class="stack g14">
         <h3>Set two dials: energy and tone</h3>
@@ -478,7 +502,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
       </div>
     </div>
 
-    <div class="rung">
+    <div class="rung" data-reveal>
       <div class="rung-n">3</div>
       <div class="stack g14">
         <h3>Take the family the dials point to</h3>
@@ -491,7 +515,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
       </div>
     </div>
 
-    <div class="rung">
+    <div class="rung" data-reveal>
       <div class="rung-n">4</div>
       <div class="stack g14">
         <h3>Go one word more precise than feels necessary</h3>
@@ -504,7 +528,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
       </div>
     </div>
 
-    <div class="rung">
+    <div class="rung" data-reveal>
       <div class="rung-n">5</div>
       <div class="stack g14">
         <h3>Ask what it is asking for</h3>
@@ -520,7 +544,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
     </div>
   </div>
 
-  <div class="card imposters" style="margin-top:44px">
+  <div data-reveal class="card imposters" style="margin-top:44px">
     <p class="eyebrow" style="margin-bottom:12px">Check for imposters</p>
     <p class="measure" style="margin-bottom:20px; color:var(--ink-2)">Some words feel like feelings but
     are actually verdicts about what someone else did. They point outward, invite argument, and hide the
@@ -541,7 +565,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
 
 <!-- ══════════════════ LEDGER ══════════════════ -->
 <section id="log"><div class="wrap">
-  <header>
+  <header data-reveal>
     <p class="eyebrow">03 — The record</p>
     <h2 class="sec-title">The ledger</h2>
     <p class="sec-lede">A weather station is only useful because it keeps a log. One entry takes twenty
@@ -551,7 +575,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
   </header>
 
   <div class="log-grid">
-    <div class="card stack g20">
+    <div data-reveal class="card stack g20">
       <p class="eyebrow">New check-in</p>
       <div>
         <label class="lab" for="wordIn">The feeling — one precise word</label>
@@ -590,12 +614,12 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
     </div>
 
     <div>
-      <div class="tiles" id="tiles"></div>
+      <div class="tiles" id="tiles" data-reveal></div>
       <p class="eyebrow" style="margin-top:10px; text-transform:none; letter-spacing:.02em; line-height:1.6">
         <span style="text-transform:uppercase; letter-spacing:.14em">Distinct words</span> is your
         granularity score. Watch it climb — that number, not the pleasant share, is the skill.</p>
 
-      <div class="card spark-card">
+      <div data-reveal class="card spark-card">
         <div class="spark-head">
           <p class="eyebrow">Intensity, last 20 check-ins</p>
           <span class="eyebrow" id="sparkNote" style="letter-spacing:.06em; text-transform:none"></span>
@@ -606,19 +630,19 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
         </div>
       </div>
 
-      <div class="card" style="margin-top:1px">
+      <div data-reveal class="card" style="margin-top:1px">
         <p class="eyebrow">Where your check-ins land</p>
         <div class="dist" id="dist"></div>
       </div>
 
-      <div class="ledger" id="ledger" aria-live="polite"></div>
+      <div class="ledger" id="ledger" data-reveal aria-live="polite"></div>
     </div>
   </div>
 </div></section>
 
 <!-- ══════════════════ PRESENCE ══════════════════ -->
 <section id="presence"><div class="wrap">
-  <header>
+  <header data-reveal>
     <p class="eyebrow">04 — The practice</p>
     <h2 class="sec-title">How to be present</h2>
     <p class="sec-lede">Presence has an operational definition, which is what makes it trainable:
@@ -627,7 +651,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
     third is the one people skip. Judging what you find turns noticing into a performance review.</p>
   </header>
 
-  <div class="card measure" style="max-width:74ch; margin-bottom:26px">
+  <div data-reveal class="card measure" style="max-width:74ch; margin-bottom:26px">
     <p class="eyebrow" style="margin-bottom:12px">The one reframe that makes it work</p>
     <p style="color:var(--ink-2)">Presence is not an unbroken beam of attention. It is the act of
     <em>returning</em>. Your mind will leave — that isn't failure, that's the equipment. Each time you
@@ -638,7 +662,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
 
   <div class="prac-grid">
 
-    <div class="card prac">
+    <div data-reveal class="card prac">
       <div><span class="pill">5 minutes</span></div>
       <h3>Cyclic sighing</h3>
       <p class="how">Two inhales through the nose — a long one, then a short top-up — then a slow,
@@ -656,7 +680,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
       trial. The strongest short-practice evidence on this page.</p>
     </div>
 
-    <div class="card prac">
+    <div data-reveal class="card prac">
       <div><span class="pill">3 minutes</span></div>
       <h3>The breathing space</h3>
       <p class="how">Three sixty-second stages, in this order. <b>Wide:</b> what is here right now —
@@ -675,7 +699,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
       better-evidenced psychological interventions there is.</p>
     </div>
 
-    <div class="card prac">
+    <div data-reveal class="card prac">
       <div><span class="pill">10 minutes</span></div>
       <h3>Anchor and return</h3>
       <p class="how">Pick one anchor — breath at the nostrils, feet on the floor, sound in the room. Rest
@@ -697,7 +721,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
     </div>
   </div>
 
-  <div class="card" style="margin-top:26px; max-width:74ch">
+  <div data-reveal class="card" style="margin-top:26px; max-width:74ch">
     <p class="eyebrow" style="margin-bottom:12px">And when the feeling is too big to sit with</p>
     <p style="color:var(--ink-2)">Presence practice is for weather you can stand in. When you're flooded,
     the order changes: settle the body first, name second, decide third. Never negotiate, reply, or
@@ -711,7 +735,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
 
 <!-- ══════════════════ TEACHING ══════════════════ -->
 <section id="teach"><div class="wrap">
-  <header>
+  <header data-reveal>
     <p class="eyebrow">05 — Passing it on</p>
     <h2 class="sec-title">Teaching the gift</h2>
     <p class="sec-lede">Here is the hard part, said plainly: presence is caught, not taught. People —
@@ -720,29 +744,29 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
     lesson. It's arriving settled.</p>
   </header>
 
-  <div class="moves" style="margin-bottom:34px">
-    <div class="move">
+  <div class="moves" data-reveal style="margin-bottom:34px">
+    <div class="move" data-reveal>
       <p class="mk">Move one</p>
       <h4>Regulate yourself first</h4>
       <p>Before you say anything, take one slow exhale and drop your shoulders. Co-regulation is
       physiological: a settled adult is the intervention. An adult performing calm while braced
       underneath gets read as danger, because the body is the honest channel.</p>
     </div>
-    <div class="move">
+    <div class="move" data-reveal>
       <p class="mk">Move two</p>
       <h4>Name, don't fix</h4>
       <p>Offer a guess with a question mark on the end — “that sounds lonely, is that close?” — and let
       them correct you. Being corrected is the win. A guess invites; a diagnosis closes. Naming *for*
       someone teaches them to outsource the reading you're trying to build.</p>
     </div>
-    <div class="move">
+    <div class="move" data-reveal>
       <p class="mk">Move three</p>
       <h4>Leave the silence</h4>
       <p>Count three full seconds after they stop. The real sentence usually lives in second four.
       High-quality listening — undivided attention, no rush to advise — measurably lowers a speaker's
       defensiveness and helps them think in more complexity about their own situation.</p>
     </div>
-    <div class="move">
+    <div class="move" data-reveal>
       <p class="mk">Move four</p>
       <h4>Ask “what else?” twice</h4>
       <p>Most people give the acceptable feeling first and the true one third. Two rounds of “what else
@@ -752,7 +776,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
 
   <div class="scripts" style="margin-bottom:34px">
 
-    <div class="script">
+    <div class="script" data-reveal>
       <p class="who">With a young child · six years old, crying, won't say why</p>
       <div class="line line-you"><span class="sp">You</span><span class="sl">Come sit. I'm not going anywhere. <em>(Sit down. Match their height. Say nothing for five seconds.)</em></span></div>
       <div class="line"><span class="sp">Child</span><span class="sl"><em>(still crying)</em></span></div>
@@ -767,7 +791,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
       they get to say no. Every round of this builds the vocabulary they'll use at sixteen.</p>
     </div>
 
-    <div class="script">
+    <div class="script" data-reveal>
       <p class="who">With a teenager · one-word answers, door mostly closed</p>
       <div class="line line-you"><span class="sp">You</span><span class="sl">You don't have to talk. I'm going to sit here a minute. <em>(Sit. Do not look directly at them. Say nothing.)</em></span></div>
       <div class="line"><span class="sp">Teen</span><span class="sl">I'm fine.</span></div>
@@ -784,7 +808,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
       them not to bring you the next one. Say what you'll do later; right now, just stay.</p>
     </div>
 
-    <div class="script">
+    <div class="script" data-reveal>
       <p class="who">With an adult · a colleague, mid-spiral, at your door</p>
       <div class="line"><span class="sp">Them</span><span class="sl">Sorry — do you have a second? This whole thing is falling apart and I don't even know where to start.</span></div>
       <div class="line line-you"><span class="sp">You</span><span class="sl">I've got ten minutes and I'm not doing anything else with them. <em>(Close the laptop. Visibly.)</em></span></div>
@@ -803,25 +827,25 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
   <p class="sec-lede" style="margin-bottom:26px">All four are well-meant. All four teach the person that
   their feeling was a problem for you.</p>
   <div class="donts" style="margin-bottom:38px">
-    <div class="dont">
+    <div class="dont" data-reveal>
       <p class="bad">“At least it's not…”</p>
       <p class="why">Comparison is a hand over the mouth. It says the size of your feeling is the thing
       we're negotiating.</p>
       <p class="instead"><b>Instead</b>“That's a lot. Tell me more about it.”</p>
     </div>
-    <div class="dont">
+    <div class="dont" data-reveal>
       <p class="bad">“Don't be sad — look at all this.”</p>
       <p class="why">Counter-evidence is an argument, and nobody has ever been argued out of a feeling.
       They just stop reporting it.</p>
       <p class="instead"><b>Instead</b>“Sad makes sense here. I'm not going anywhere.”</p>
     </div>
-    <div class="dont">
+    <div class="dont" data-reveal>
       <p class="bad">“You're just tired.”</p>
       <p class="why">Naming <em>for</em> them, with no question mark. Even if you're right, you've taken
       the reading they needed to do themselves.</p>
       <p class="instead"><b>Instead</b>“Could some of this be tiredness? Or is that not it?”</p>
     </div>
-    <div class="dont">
+    <div class="dont" data-reveal>
       <p class="bad">“Everyone share a feeling. Marcus, you're up.”</p>
       <p class="why">Required disclosure isn't emotional learning, it's compliance — and it teaches the
       quiet ones to produce an acceptable feeling on demand.</p>
@@ -829,7 +853,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
     </div>
   </div>
 
-  <div class="card" style="max-width:76ch">
+  <div data-reveal class="card" style="max-width:76ch">
     <p class="eyebrow" style="margin-bottom:12px">For a classroom, a group, or a family table</p>
     <p style="color:var(--ink-2); margin-bottom:16px">Ninety seconds, at the same moment every day. The
     consistency is doing most of the work; the content matters less than the fact that it happens whether
@@ -851,7 +875,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
 
 <!-- ══════════════════ EVIDENCE ══════════════════ -->
 <section id="evidence"><div class="wrap">
-  <header>
+  <header data-reveal>
     <p class="eyebrow">06 — Showing the work</p>
     <h2 class="sec-title">What the evidence actually says</h2>
     <p class="sec-lede">Sorted by how much weight each idea can bear. Nothing in the third tier is
@@ -860,7 +884,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
   </header>
 
   <div class="tiers">
-    <div class="tier">
+    <div class="tier" data-reveal>
       <h3><span class="grade" style="background:var(--f3)"></span>Well supported</h3>
       <ul>
         <li><p class="claim">Putting a feeling into words dampens the brain's threat response.</p>
@@ -893,7 +917,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
       </ul>
     </div>
 
-    <div class="tier">
+    <div class="tier" data-reveal>
       <h3><span class="grade" style="background:var(--f1)"></span>Promising, with real caveats</h3>
       <ul>
         <li><p class="claim">Emotion sorts along two axes: pleasantness and activation.</p>
@@ -922,7 +946,7 @@ footer{margin-top:70px; border-top:1px solid var(--rule); background:var(--panel
       </ul>
     </div>
 
-    <div class="tier">
+    <div class="tier" data-reveal>
       <h3><span class="grade" style="background:var(--f4)"></span>Practice wisdom — thin or contested evidence</h3>
       <ul>
         <li><p class="claim">The feeling wheel itself.</p>
@@ -974,22 +998,34 @@ const FAMILIES = [
         body:"Shoulders dropped, slow easy breath, a warm settled chest.",
         need:"To be noticed before it passes. Contentment is quiet and almost never gets logged.",
         ask:"What is enough right now that you'd normally walk straight past?",
-        nubs:["satisfied","at ease","fulfilled"] },
+        nubs:[
+          ["satisfied","A specific want has been met.","Points at something that is now sufficient — the meal, the finished task. It has an object, and it fades when the object does."],
+          ["at ease","Nothing is asking anything of you.","About the absence of pressure rather than the presence of a good thing. You could stay here a while."],
+          ["fulfilled","The shape of your life fits.","Not about this moment but about the whole. Slower to arrive and slower to leave, and it survives a bad afternoon."]] },
       { name:"Playful", def:"Energy with no goal attached. The opposite of performing — and the first thing to disappear when you're being evaluated.",
         body:"Light across the face, wanting to move, quick shallow breath.",
         need:"Permission, and usually a partner. Play dies under assessment.",
         ask:"What would you do right now if you knew nobody was grading it?",
-        nubs:["amused","buoyant","silly"] },
+        nubs:[
+          ["amused","Something struck you as funny.","Directed at a thing outside you — a joke, an absurdity. It is a response, so it needs material."],
+          ["buoyant","Light for no particular reason.","The mood rather than the reaction. Nothing is funny; you are simply hard to weigh down today."],
+          ["silly","Willing to look foolish.","The most exposed of the three, because it needs an audience that will not use it against you. Children lose this first in unsafe rooms."]] },
       { name:"Excited", def:"Pleasant activation aimed at something coming. Physiologically almost identical to anxiety — the difference is what you expect to happen.",
         body:"Fast heart, buzzing hands, genuinely hard to sit still.",
         need:"Somewhere to put the charge, and someone to tell.",
         ask:"What are you moving toward — and is any part of this actually nervous?",
-        nubs:["eager","charged","thrilled"] },
+        nubs:[
+          ["eager","Leaning toward one specific thing.","Has a target and a direction — you want to start. The closest of the three to impatience."],
+          ["charged","Energy in the body, not yet aimed.","The physical fact of activation before it attaches to anything. This is the one most often mistaken for anxiety."],
+          ["thrilled","The peak, and brief.","Top of the range, usually about something that just happened rather than something coming. It does not sustain."]] },
       { name:"Hopeful", def:"Holding that a better outcome is possible without knowing it's coming. Quietly vulnerable, because hope is the thing that can be disappointed.",
         body:"Chest opens, eyes lift, a slight forward lean.",
         need:"One concrete next step, so hope doesn't have to live on abstraction.",
         ask:"What are you hoping for, and what would the very first sign of it be?",
-        nubs:["buoyed","expectant","heartened"] } ] },
+        nubs:[
+          ["buoyed","Lifted by something that just happened.","A specific piece of good news is holding you up. Borrowed from an event, so it can be taken back."],
+          ["expectant","Leaning forward, assuming it comes.","Treats the good outcome as on its way rather than merely possible. Nearer to confidence, and further to fall."],
+          ["heartened","Discouragement, reversed.","Only makes sense after something had knocked you down. This is recovery, not optimism."]] } ] },
 
   { key:"powerful", name:"Powerful", v:"pleasant", a:"high", tone:"Pleasant, high agency — you are the one acting, not the one being acted on.",
     mids:[
@@ -997,22 +1033,34 @@ const FAMILIES = [
         body:"Weight even on both feet, steady voice, loose jaw.",
         need:"To be spent. Confidence with nowhere to go turns into restlessness.",
         ask:"What, specifically, are you actually competent at here?",
-        nubs:["assured","capable","steady"] },
+        nubs:[
+          ["assured","No need to check.","The absence of doubt about your standing rather than your skill. You are not scanning for approval."],
+          ["capable","You have done this before.","Grounded in evidence: specific competence at a specific task. The most defensible of the three, and the easiest to rebuild."],
+          ["steady","Unshaken while it is hard.","Not about ability but about not tipping. Available even when you are unsure, which the other two are not."]] },
       { name:"Proud", def:"A standard of your own being met. Distinct from being praised — you can be praised and feel nothing, or unwitnessed and feel this.",
         body:"Chest lifts, spine lengthens, an involuntary small smile.",
         need:"To be witnessed by one person whose judgement you'd actually trust.",
         ask:"What did this cost you that nobody else can see?",
-        nubs:["gratified","worthy","glowing"] },
+        nubs:[
+          ["gratified","Effort met its return.","Points at the outcome — it paid off. It needs a result, so it can be withheld."],
+          ["worthy","A claim about you, not the work.","Deeper and rarer: the sense of deserving your place. The direct opposite of shame, which is why shame attacks it."],
+          ["glowing","Visible on you.","The bodily overflow of pride — warmth, a smile you cannot fully hide. The part other people notice first."]] },
       { name:"Respected", def:"Registering that you matter to someone. This one depends on other people — which is exactly why losing it lands so hard.",
         body:"Warmth in the face, open throat, easier eye contact.",
         need:"To be said out loud. Naming it back is what makes it repeat.",
         ask:"Who gave you this, and do they know they did?",
-        nubs:["valued","seen","honoured"] },
+        nubs:[
+          ["valued","You are useful here.","About your contribution being registered. Can be entirely true while nobody knows you at all."],
+          ["seen","You are known here.","About your interior, not your output. This is what people are usually starving for when they say they feel invisible."],
+          ["honoured","Someone chose to raise you up.","Public and deliberate — an act, not an atmosphere. Arrives with a slight weight of obligation."]] },
       { name:"Purposeful", def:"Energy organised around something that matters. The most durable form of feeling powerful, because it doesn't need an audience.",
         body:"Narrow focus, forward pressure, time going missing.",
         need:"Protection from interruption.",
         ask:"What is the one thing this is in service of?",
-        nubs:["driven","focused","resolute"] } ] },
+        nubs:[
+          ["driven","Pushed from behind.","Energy with force in it, sometimes uncomfortable. Fear fuels this as easily as meaning does — worth checking which."],
+          ["focused","Narrowed, and it feels good.","About attention rather than motivation. The state itself is pleasant, and time disappears inside it."],
+          ["resolute","Decided, and no longer arguing.","The quietest of the three, and not high energy at all. The internal debate has simply ended."]] } ] },
 
   { key:"peaceful", name:"Peaceful", v:"pleasant", a:"low", tone:"Pleasant, low energy — nothing needs to change right now.",
     mids:[
@@ -1020,22 +1068,34 @@ const FAMILIES = [
         body:"Long exhale, soft belly, attention wide rather than pointed.",
         need:"Not to be spent immediately. Protect whatever produced it.",
         ask:"What did you do — or stop doing — that let this happen?",
-        nubs:["calm","still","unhurried"] },
+        nubs:[
+          ["calm","The storm is not happening.","Defined by what is absent — activation has come down. Usually the recovery from something."],
+          ["still","Nothing is moving inside.","Stronger than calm and much rarer: even the small internal churn has stopped."],
+          ["unhurried","Time is not chasing you.","Specifically about pace. You can be busy and unhurried, which is why it earns its own word."]] },
       { name:"Loving", def:"Warmth moving outward toward someone specific. Directional, which is what separates it from contentment.",
         body:"Chest warm and full, wanting to move closer, soft throat.",
         need:"Expression. Unspoken love reliably turns into ache.",
         ask:"Who is this pointed at, and what stops you saying it to them?",
-        nubs:["tender","warm","fond"] },
+        nubs:[
+          ["tender","Careful, because they are breakable.","Contains awareness of the other person's fragility. Shows up around children, the ill, the newly hurt."],
+          ["warm","Simple goodwill, no ache.","The broadest and lightest of the three. Can point at many people at once, including strangers."],
+          ["fond","Affection with history in it.","Requires time — you cannot be fond of someone you met today. Comfortable rather than intense."]] },
       { name:"Thankful", def:"Registering that something good came from outside you. Requires admitting dependence, which is why it can feel unexpectedly heavy.",
         body:"Chest full in a good way, throat tight, sometimes tears.",
         need:"To reach the actual person, not just to be felt privately.",
         ask:"Who or what gave you something you didn't earn?",
-        nubs:["grateful","moved","humbled"] },
+        nubs:[
+          ["grateful","Clear-eyed acknowledgement.","You can hold this one steadily and say it out loud. The most usable of the three."],
+          ["moved","It got past your defences.","Physical — throat, eyes. Not chosen: it happens when the kindness lands harder than you expected."],
+          ["humbled","You received more than you had earned.","Includes the sting of the gap between what you deserved and what you got. Uncomfortable, and worth staying with."]] },
       { name:"Trusting", def:"Lowered guard. Your nervous system's verdict that this situation is safe — a judgement, and occasionally a wrong one.",
         body:"Shoulders down from the ears, slower scanning, open posture.",
         need:"To be worth it. Trust is data; check it against behaviour.",
         ask:"What told your body this was safe?",
-        nubs:["safe","at rest","open"] } ] },
+        nubs:[
+          ["safe","Nothing here will hurt you.","About threat being absent. The precondition for the other two, and the first to go."],
+          ["at rest","You can stop working.","Vigilance itself has stood down — not just no danger, but no monitoring for danger. Far rarer than safe."],
+          ["open","Willing to be affected.","Active rather than passive: you are letting things in. This is the one that makes closeness possible."]] } ] },
 
   { key:"sad", name:"Sad", v:"unpleasant", a:"low", tone:"Unpleasant, low energy — something is gone, or out of reach.",
     mids:[
@@ -1043,22 +1103,34 @@ const FAMILIES = [
         body:"Hollow chest, heavy limbs, a pull to curl inward.",
         need:"Contact. One real exchange does more than a crowd.",
         ask:"Who would you want to walk through the door right now?",
-        nubs:["isolated","unseen","homesick"] },
+        nubs:[
+          ["isolated","No one is near.","About the physical fact. Fixable by presence, which makes it the simplest of the three."],
+          ["unseen","People are near and it does not help.","The crowded-room version. Presence is not the missing ingredient — being known is."],
+          ["homesick","Missing a specific belonging.","Aimed at a particular place, time, or people you had. Grief wearing loneliness's clothes."]] },
       { name:"Grieving", def:"The bill for having loved something. Not a problem to be solved — it's love with nowhere left to land.",
         body:"Waves rather than a state: chest and throat tighten, then release. Unpredictable timing.",
         need:"Time and company. Not repair, and not perspective.",
         ask:"What are you missing, and what did it give you that you no longer have?",
-        nubs:["bereft","aching","wistful"] },
+        nubs:[
+          ["bereft","Recent, and raw.","Stripped and disoriented, hard to function. Comes in waves and does not take comfort well."],
+          ["aching","The steady middle of it.","Less acute, more constant. You can work through this one, and it lasts far longer than people expect."],
+          ["wistful","Softened by time.","Loss that has become almost sweet. If grief is going well it eventually arrives here — not a lesser feeling, a later one."]] },
       { name:"Ashamed", def:"“I am bad,” where guilt says “I did something bad.” Guilt moves you toward repair; shame moves you toward hiding. The difference is everything.",
         body:"Heat in the face and neck, gaze dropping, wanting to be physically smaller.",
         need:"To be seen anyway. Shame does not survive being met without flinching.",
         ask:"Is this about something you did, or about who you think you are? What's the guilt version of the sentence?",
-        nubs:["exposed","small","mortified"] },
+        nubs:[
+          ["exposed","Something private became visible.","About being seen, not about being bad. Can happen over something you do not even think is wrong."],
+          ["small","Shrunk in your own estimation.","The chronic form: a background sense of being less. This is the one that shapes how people behave for years."],
+          ["mortified","Acute, specific, and burning.","Tied to a moment you can replay. Intense but time-limited, and it fades in a way small does not."]] },
       { name:"Weary", def:"Depletion, not laziness. Often what depression feels like from the inside before it has a name.",
         body:"Everything heavy, food and interest gone flat, speech slow.",
         need:"Real rest — and if this has run for weeks, a professional set of eyes.",
         ask:"When did you last feel rested? What has been drawing on you since then?",
-        nubs:["depleted","flat","numb"] } ] },
+        nubs:[
+          ["depleted","Spent, and rest would fix it.","Straightforward exhaustion after real output. Responds to sleep and food, which is what separates it from the others."],
+          ["flat","Nothing tastes like anything.","Not tiredness but loss of colour — you can be rested and flat. Persistent flatness is worth taking to a professional."],
+          ["numb","Feeling has switched off.","Protective shutdown rather than depletion. Often follows something overwhelming, and it is not calm even when it looks like it."]] } ] },
 
   { key:"scared", name:"Scared", v:"unpleasant", a:"high", tone:"Unpleasant, high energy — something might hurt, and you're braced for it.",
     mids:[
@@ -1066,22 +1138,34 @@ const FAMILIES = [
         body:"Tight chest, high shallow breathing, restless hands, eyes scanning.",
         need:"Specificity. A named fear is smaller than an unnamed one.",
         ask:"Finish the sentence: “I'm afraid that ______ will happen, and then ______.”",
-        nubs:["restless","keyed up","dreading"] },
+        nubs:[
+          ["restless","Cannot settle, do not know why.","The mildest and most physical — the body wants to move. Often the earliest signal you get."],
+          ["keyed up","Wound tight and alert.","Higher activation and harder to think through. Sleep is the first thing to go here."],
+          ["dreading","Pointed at a specific thing coming.","Has an object and often a date. Paradoxically the most workable, because a named fear can be planned for."]] },
       { name:"Insecure", def:"Fear pointed at your own adequacy rather than at the situation. The threat is being found out.",
         body:"Tight throat, shoulders drawn up, silently rehearsing what to say.",
         need:"Evidence, not reassurance. Reassurance wears off in an hour.",
         ask:"What are you afraid they'll find out? Now — is it actually true?",
-        nubs:["unsure","shaky","inadequate"] },
+        nubs:[
+          ["unsure","You do not know if you can.","An open question, not yet a verdict. The lightest of the three, and honest."],
+          ["shaky","Confidence was there and slipped.","About instability rather than absence — you had footing and lost it. Recoverable, and it knows that."],
+          ["inadequate","A verdict about yourself.","No longer a question. This is where insecurity meets shame, and the one that needs contradicting with evidence."]] },
       { name:"Overwhelmed", def:"Demand past capacity, so nothing gets processed at all. The freeze is a full inbox, not a failure of character.",
         body:"Buzzing head, tight chest, can't finish a thought, urge to leave the room.",
         need:"Reduction. One item, written down, out of your head.",
         ask:"If you could only do one of these in the next hour, which one?",
-        nubs:["flooded","scattered","frozen"] },
+        nubs:[
+          ["flooded","Too much feeling at once.","The volume problem: emotion has exceeded capacity. Nothing else works until this comes down."],
+          ["scattered","Too many things at once.","The attention problem. You can still function, just not in a straight line — a written list genuinely helps here."],
+          ["frozen","The system has stopped.","The end state of the other two. Not resistance and not laziness, but a full inbox refusing new input. Needs one tiny action, not a plan."]] },
       { name:"Threatened", def:"Fear with a source you can point at. Sharper and considerably more useful than free-floating anxiety.",
         body:"Jaw set, muscles loaded, narrowed vision, very awake.",
         need:"Safety first, decisions second. Don't strategise while flooded.",
         ask:"What is the specific threat, and what would genuinely make you safer in the next ten minutes?",
-        nubs:["alarmed","wary","braced"] } ] },
+        nubs:[
+          ["alarmed","It just happened.","The spike: sudden, whole-body, and quick to fade if the threat does not materialise."],
+          ["wary","You are watching something.","Low-grade and sustainable — you can be wary for weeks. Useful information about a person or a place."],
+          ["braced","You expect impact.","The threat is coming and you have stopped avoiding it. The body has committed to absorbing it, and holding this is exhausting."]] } ] },
 
   { key:"mad", name:"Mad", v:"unpleasant", a:"high", tone:"Unpleasant, high energy — a boundary or a value has been crossed.",
     mids:[
@@ -1089,22 +1173,34 @@ const FAMILIES = [
         body:"Tension in hands and jaw, sharp exhale, a wish to push against something.",
         need:"A different route — or to grieve the route that just closed.",
         ask:"What are you trying to do that isn't working? Is the block outside you or inside you?",
-        nubs:["thwarted","impatient","stuck"] },
+        nubs:[
+          ["thwarted","Something blocked you.","There is an obstacle you can point at, often a person or a rule. Directed outward."],
+          ["impatient","It is too slow.","About pace, not blockage — it is coming, just not fast enough. The most likely of the three to be about you."],
+          ["stuck","No route is visible.","Not blocked by something; just out of ideas. Quieter and more discouraging, and closest to the sad family."]] },
       { name:"Hurt", def:"Anger's softer origin, and almost always underneath it. Find the hurt and the anger gets far more accurate.",
         body:"Ache behind the sternum, tight throat, tears close to the surface.",
         need:"Acknowledgement — from whoever caused it, or failing that, from you.",
         ask:"What did you hope for from them that you didn't get?",
-        nubs:["wounded","betrayed","raw"] },
+        nubs:[
+          ["wounded","It landed and it is still open.","About the injury itself. Does not require intent — people wound each other accidentally all the time."],
+          ["betrayed","Trust specifically was broken.","Requires that you had trusted them. Sharper than wounded, and it damages the future as well as the present."],
+          ["raw","Anything touches it now.","About sensitivity after the fact. You will overreact and know you are overreacting. This is when to postpone conversations."]] },
       { name:"Irritated", def:"Low-grade anger, usually about accumulation rather than the current trigger. The last straw is rarely the problem.",
         body:"Prickly skin, short breath, no tolerance for noise or being touched.",
         need:"To find the real load. Also, unglamorously: food, water, sleep.",
         ask:"What is this the tenth of? And when did you last eat or sleep properly?",
-        nubs:["annoyed","edgy","prickly"] },
+        nubs:[
+          ["annoyed","This particular thing.","Has a cause you can name. Proportionate, and it passes when the thing stops."],
+          ["edgy","Ready to snap at anything.","No specific cause: a state, not a response. Almost always accumulation — or sleep, or hunger."],
+          ["prickly","Contact itself is unwelcome.","The one that shows up as pushing people away. Others feel it before you have named it, which is why it costs relationships."]] },
       { name:"Furious", def:"Full activation in defence of something that matters. Excellent information about your values, and terrible at choosing actions.",
         body:"Heat, hard heartbeat, sound loud in the ears, hands wanting to move.",
         need:"Discharge without damage now; the decision later.",
         ask:"Which value of yours got violated? And what will you regret if you act in the next ten minutes?",
-        nubs:["enraged","seething","hot"] } ] },
+        nubs:[
+          ["enraged","Full flood, outward.","Maximum activation with an urge to act. Nothing decided here survives review — impose a delay."],
+          ["seething","Full flood, contained.","The same intensity, held in. Lasts far longer than rage because nothing discharges it, and it leaks out sideways."],
+          ["hot","The first second of it.","The flash before you have decided anything. Catching it here is the whole skill: there is a real gap between hot and enraged."]] } ] },
 ];
 
 const BODY_CHIPS = ["tight chest","hollow stomach","thick throat","clenched jaw","high shoulders",
@@ -1255,7 +1351,7 @@ function drawNubRing(){
      words stay lit; its siblings go quiet but remain reachable. */
   const F=FAMILIES[sel.fi], fa0 = -90 + sel.fi*60;
   F.mids.forEach((M,mi)=>{
-    M.nubs.forEach((word,ni)=>{
+    M.nubs.forEach(([word],ni)=>{
       const a0 = fa0 + mi*15 + ni*5;
       const quiet = sel.mi!==null && sel.mi!==mi;
       const w = el("g",{ class:"wedge", "data-kind":"nub",
@@ -1330,23 +1426,38 @@ function renderReadout(){
   }
 
   const M=F.mids[sel.mi];
-  const word = sel.ni!==null ? M.nubs[sel.ni] : M.name;
+  const N = sel.ni!==null ? M.nubs[sel.ni] : null;   // [word, contrast, meaning]
+  const word = N ? N[0] : M.name;
   name.textContent = word;
-  if(sel.ni!==null) chipT.textContent = `${F.name} → ${M.name}`;
+  if(N) chipT.textContent = `${F.name} → ${M.name}`;
 
-  body.innerHTML = `
+  /* The three precise words are the whole point of the outer ring, so show what
+     separates them rather than repeating the parent feeling three times. */
+  const sibs = `<div class="sibs">${M.nubs.map(([w,t],i)=>
+      `<button class="sib" data-nub="${i}" aria-pressed="${sel.ni===i}">`+
+      `<span class="sw">${esc(w)}</span><span class="st">${esc(t)}</span></button>`).join("")}</div>`;
+
+  body.innerHTML = N ? `
+    <dl style="margin:0">
+      <div class="field"><dt>What it is</dt><dd>${esc(N[2])}</dd></div>
+      <div class="field"><dt>Next to its neighbours</dt><dd>${sibs}</dd></div>
+      <div class="field"><dt>In the body</dt><dd><em>${esc(M.body)}</em></dd></div>
+      <div class="field"><dt>Asking for</dt><dd>${esc(M.need)}</dd></div>
+      <div class="field"><dt>Ask yourself</dt><dd>${esc(M.ask)}</dd></div>
+    </dl>
+    <p class="sib-note">The body signature, the need and the question belong to
+      <b>${esc(M.name)}</b> — all three precise words share them. What differs is
+      the reading at the top, and that difference is the reason to pick one.</p>` : `
     <dl style="margin:0">
       <div class="field"><dt>What it is</dt><dd>${esc(M.def)}</dd></div>
       <div class="field"><dt>In the body</dt><dd><em>${esc(M.body)}</em></dd></div>
       <div class="field"><dt>Asking for</dt><dd>${esc(M.need)}</dd></div>
       <div class="field"><dt>Ask yourself</dt><dd>${esc(M.ask)}</dd></div>
-      <div class="field"><dt>More precise</dt><dd><div class="nubs">${
-        M.nubs.map((n,i)=>`<button class="chip" data-nub="${i}" aria-pressed="${sel.ni===i}">${esc(n)}</button>`).join("")
-      }</div></dd></div>
+      <div class="field"><dt>More precise</dt><dd>${sibs}</dd></div>
     </dl>`;
   acts.innerHTML = `<button class="btn btn-primary" id="useWord">Log “${esc(word)}” →</button>
                     <button class="btn btn-quiet" id="clearSel">Clear</button>`;
-  hubText(sel.ni!==null?M.name.toLowerCase():F.name.toLowerCase(), word, F.name);
+  hubText(N?M.name.toLowerCase():F.name.toLowerCase(), word, F.name);
 
   $$("[data-nub]",body).forEach(b=>b.addEventListener("click",()=>{
     const i=+b.dataset.nub; select(sel.fi,sel.mi, sel.ni===i?null:i);
@@ -1362,7 +1473,7 @@ function buildVocab(){
       <h4><span class="dot" style="--c:${famVar(fi)}"></span>${esc(F.name)}</h4>
       <ul>${F.mids.map((M,mi)=>
         `<li><button data-f="${fi}" data-m="${mi}">${esc(M.name)}</button></li>` +
-        M.nubs.map((n,ni)=>`<li><button data-f="${fi}" data-m="${mi}" data-n="${ni}">${esc(n)}</button></li>`).join("")
+        M.nubs.map(([n],ni)=>`<li><button data-f="${fi}" data-m="${mi}" data-n="${ni}">${esc(n)}</button></li>`).join("")
       ).join("")}</ul>
     </div>`).join("");
   $$("#vocabList button").forEach(b=>b.addEventListener("click",()=>{
@@ -1718,6 +1829,30 @@ $("#retBtn").addEventListener("click",()=>{
 });
 
 /* ══════════════════════════ GO ══════════════════════════ */
+/* ══════════════════════════ SCROLL REVEAL ══════════════════════════
+   Blocks rise into place as they enter the viewport. Gated on JS + IO +
+   reduced-motion: the `reveal-on` class is what hides anything, and it is
+   only ever added immediately before the observer starts, so a failure
+   leaves the page plainly visible rather than blank. */
+(function(){
+  const items = $$("[data-reveal]");
+  if(reduceMotion || !("IntersectionObserver" in window) || !items.length) return;
+  items.forEach(elm=>{
+    const sibs=[...elm.parentElement.children].filter(c=>c.hasAttribute("data-reveal"));
+    const i=sibs.indexOf(elm);
+    if(sibs.length>1 && i>0) elm.style.transitionDelay = `${Math.min(i*70,280)}ms`;
+  });
+  document.documentElement.classList.add("reveal-on");
+  const io = new IntersectionObserver(ents=>{
+    for(const en of ents){
+      if(!en.isIntersecting) continue;
+      en.target.classList.add("is-in");
+      io.unobserve(en.target);
+    }
+  },{ rootMargin:"0px 0px -6% 0px", threshold:0.06 });
+  items.forEach(elm=>io.observe(elm));
+})();
+
 buildDial(); buildVocab(); renderReadout(); renderLog();
 </script>
 
