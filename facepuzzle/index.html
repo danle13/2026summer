@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Face Salad — scramble the people you love</title>
+<meta name="description" content="Upload a photo, watch a face come apart into puzzle pieces, then rebuild it from a pile of noses that mostly aren't theirs. Everything stays on your device.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥗</text></svg>">
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/app.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <span class="brand-eye"></span><span class="brand-eye"></span><span class="brand-mouth"></span>
+    </span>
+    <span class="brand-text">Face&nbsp;Salad</span>
+  </div>
+
+  <nav class="modes" id="mode-nav" aria-label="Game modes">
+    <button class="mode-btn" data-mode="studio" type="button" aria-pressed="false">
+      <span class="mode-emoji" aria-hidden="true">🧩</span><span>Studio</span>
+    </button>
+    <button class="mode-btn" data-mode="hunt" type="button" aria-pressed="false">
+      <span class="mode-emoji" aria-hidden="true">🕵️</span><span>Impostor Hunt</span>
+    </button>
+    <button class="mode-btn" data-mode="scatter" type="button" aria-pressed="false">
+      <span class="mode-emoji" aria-hidden="true">💥</span><span>Scatter</span>
+    </button>
+    <button class="mode-btn" data-mode="gallery" type="button" aria-pressed="false">
+      <span class="mode-emoji" aria-hidden="true">🖼️</span><span>Fridge</span>
+    </button>
+  </nav>
+
+  <div class="topbar-right">
+    <button class="ghost-btn" id="btn-add-face" type="button" title="Add another person to the parts bin">
+      <span aria-hidden="true">＋</span> Add face
+    </button>
+    <span class="privacy-pill" title="No photo ever leaves this browser. There is no server.">
+      <span aria-hidden="true">🔒</span> stays on your device
+    </span>
+  </div>
+</header>
+
+<main id="main">
+  <!-- Views are swapped in and out by src/main.js -->
+  <section class="view" id="view-intro" hidden></section>
+  <section class="view" id="view-studio" hidden></section>
+  <section class="view" id="view-hunt" hidden></section>
+  <section class="view" id="view-scatter" hidden></section>
+  <section class="view" id="view-gallery" hidden></section>
+</main>
+
+<!-- Full-screen busy state used while a face is being taken apart -->
+<div class="scrim" id="busy" hidden>
+  <div class="busy-card">
+    <div class="busy-spinner" aria-hidden="true"></div>
+    <p class="busy-label" id="busy-label">Finding a face…</p>
+    <p class="busy-sub" id="busy-sub"></p>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<input type="file" id="file-input" accept="image/*" multiple hidden>
+
+<template id="tpl-slot-chip">
+  <button class="slot-chip" type="button" role="tab" aria-selected="false">
+    <span class="slot-chip-thumb"></span>
+    <span class="slot-chip-name"></span>
+    <span class="slot-chip-badge" hidden></span>
+  </button>
+</template>
+
+<script type="module" src="src/main.js"></script>
+<noscript>
+  <p style="padding:2rem;text-align:center">Face Salad is all client-side JavaScript — please enable it.</p>
+</noscript>
+</body>
+</html>
