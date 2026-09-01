@@ -8,13 +8,13 @@
 
 import { el, clear } from '../lib/dom.js';
 import { SLOTS, SLOT_BY_ID } from '../face/slots.js';
-import { SAMPLE_PRESETS } from '../face/samples.js';
+import { featuredIds, loadStockFaces } from '../face/stockFaces.js';
 import { KIND_LABELS, DIFFICULTIES, DIFFICULTY_IDS } from '../face/decoys.js';
-import { renderComposite, renderPieceThumb } from '../face/composite.js';
+import { renderComposite, renderPieceThumb, renderAvatar } from '../face/composite.js';
 import { downloadCanvas } from '../lib/canvas.js';
 import {
   state, hero, subscribe, selectPiece, randomizeSelection, resetSelection,
-  rebuildBin, setPref, setHero, notify, truthCount,
+  rebuildBin, refreshStrangers, setPref, setHero, removeFace, notify, truthCount,
 } from '../store.js';
 import { toast, toastOk } from './toast.js';
 import { confetti } from './effects.js';
@@ -127,7 +127,7 @@ export function mount(root, app) {
       el('div.row', { style: { marginTop: '.7rem' } },
         el('button.btn.btn-sm', {
           type: 'button', title: 'Generate a fresh set of impostors',
-          on: { click: () => { rebuildBin({ reseed: true, keepSelection: false }); notify('bin'); toast('New impostors dealt.', { icon: '🔄' }); } },
+          on: { click: () => { rebuildBin({ reseed: true, keepSelection: false }); refreshStrangers(); notify('bin'); toast('New impostors dealt.', { icon: '🔄' }); } },
         }, '🔄 Deal again'),
       ),
     ),
@@ -172,7 +172,10 @@ export function mount(root, app) {
     if (pct === 100) badges.appendChild(el('span.pill.pill-ok', 'untouched'));
     else if (pct === 0) badges.appendChild(el('span.pill.pill-bad', 'a complete stranger'));
     else badges.appendChild(el('span.pill.pill-warn', `${pct}% them`));
-    if (face.geometry.quality === 'estimated') {
+    // A library face has no geometry of its own — it arrives pre-aligned.
+    if (face.stock) {
+      badges.appendChild(el('span.pill', { title: 'A synthetic face from the bundled library', text: 'from the library' }));
+    } else if (face.geometry?.quality === 'estimated') {
       badges.appendChild(el('span.pill', { title: 'Placed by hand rather than detected', text: 'hand-placed' }));
     }
   }
@@ -188,6 +191,16 @@ export function mount(root, app) {
         on: { click: () => setHero(face.id) },
       }, el('span.dot'), el('span', { text: face.label }));
       faceTabs.appendChild(tab);
+
+      // Only offer to drop a face while another one could take over as hero.
+      if (state.faces.length > 1) {
+        faceTabs.appendChild(el('button.face-tab-drop', {
+          type: 'button',
+          title: `Take ${face.label} out of the parts bin`,
+          'aria-label': `Remove ${face.label}`,
+          on: { click: () => { removeFace(face.id); toast(`${face.label} left the parts bin.`); } },
+        }, '\u00d7'));
+      }
     }
     if (state.faces.length === 1) {
       faceTabs.appendChild(el('span.tiny.muted', {
@@ -196,17 +209,22 @@ export function mount(root, app) {
       }));
     }
 
-    // Borrowing a painted sample is the quickest way to see what a *real*
-    // second person does to the parts bin, so keep it one click from here.
+    // Borrowing a face from the library is the quickest way to see what a real
+    // second person does to the parts bin.
     clear(borrowRow);
-    const spare = SAMPLE_PRESETS.filter(p => !state.faces.some(f => f.label.startsWith(p.label)));
-    for (const preset of spare) {
-      borrowRow.appendChild(el('button.switch', {
-        type: 'button',
-        title: `Add the sample face ${preset.label} as spare parts`,
-        on: { click: () => app.addSample(preset.id) },
-      }, `＋ ${preset.label}`));
-    }
+    featuredIds(3)
+      .then(ids => loadStockFaces(ids))
+      .then(faces => {
+        for (const face of faces) {
+          if (state.faces.some(f => f.id === face.id)) continue;
+          borrowRow.appendChild(el('button.switch', {
+            type: 'button',
+            title: 'Add this face to the parts bin',
+            on: { click: () => { app.addSpareFace(face); } },
+          }, el('span.face-chip-thumb', renderAvatar(face, 48)), 'spare parts'));
+        }
+      })
+      .catch(() => {});
   }
 
   function paintRail() {
@@ -236,7 +254,9 @@ export function mount(root, app) {
   function paintOptions() {
     const slot = SLOT_BY_ID[activeSlot];
     const options = state.bin[activeSlot] || [];
-    optionHint.textContent = slot ? slot.hint : '';
+    optionHint.textContent = state.strangersLoading
+      ? 'fetching more faces\u2026'
+      : (slot ? slot.hint : '');
     clear(optionGrid);
 
     options.forEach((piece, index) => {

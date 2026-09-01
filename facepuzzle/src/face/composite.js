@@ -18,7 +18,8 @@ const CACHE_LIMIT = 400;
 
 function blendedSurface(piece, style, skin, strength) {
   const bucket = Math.round(strength * 20) / 20;
-  const key = `${piece.id}|${style}|${bucket}|${Math.round(skin.r)},${Math.round(skin.g)},${Math.round(skin.b)}`;
+  const key = `${piece.id}|${style}|${bucket}|${Math.round(skin.r)},${Math.round(skin.g)},${Math.round(skin.b)}`
+    + `,${Math.round(skin.sr)},${Math.round(skin.sg)},${Math.round(skin.sb)}`;
   const hit = blendCache.get(key);
   if (hit) return hit;
 
@@ -42,10 +43,15 @@ export const clearBlendCache = () => blendCache.clear();
  * @param {number} [opts.size]    output square size
  * @param {boolean} [opts.seams]  outline each piece
  * @param {Set<string>} [opts.only] restrict to these slots (rest shows the original)
+ * @param {boolean} [opts.uniform] draw every piece, including untouched ones. A
+ *        quiz board must set this: if the genuine option alone were left showing
+ *        through the base, it would be the only one that had not been through a
+ *        crop-and-rescale, and the softness of the others would give it away.
  * @returns {HTMLCanvasElement}
  */
 export function renderComposite({
-  hero, bin, selection, style = 'soft', blend = 0.5, size = 720, seams = false, only = null, into = null,
+  hero, bin, selection, style = 'soft', blend = 0.5, size = 720,
+  seams = false, only = null, into = null, uniform = false,
 }) {
   // Reuse the caller's canvas when it fits — the studio re-composites on every
   // slider tick and a fresh 720² buffer each time is needless garbage.
@@ -79,7 +85,7 @@ export function renderComposite({
     // it from a 224px cut would only add a resampling blur and a faint ring
     // where the feather lands, so leave the original showing through. Jigsaw
     // mode still draws it — there the cut edge is the point.
-    const untouched = piece.real && style === 'soft';
+    const untouched = piece.real && style === 'soft' && !uniform;
     if (!untouched) {
       const surface = blendedSurface(piece, style, hero.skin[slot.id], blend);
       ctx.drawImage(surface, target.x, target.y, target.w, target.h);

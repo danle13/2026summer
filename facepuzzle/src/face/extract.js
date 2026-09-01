@@ -12,7 +12,7 @@
 import { SLOTS, SLOT_BY_ID } from './slots.js';
 import {
   createCanvas, cropRect, featherEllipse, applyJigsawMask,
-  meanColor, drawCover,
+  meanColor, channelStats, drawCover,
 } from '../lib/canvas.js';
 import { makeRng, hashSeed, uid } from '../lib/random.js';
 
@@ -42,12 +42,31 @@ export const PIECE_MAX = 224;
  * @returns {object} face record
  */
 export function extractFace({ id = uid('face'), label, source, geometry }) {
-  const base = renderBase(source, geometry);
-  const rel = relativeRegions(geometry);
-  const rng = makeRng(hashSeed(id));
+  return assembleFace({
+    id, label, source, geometry,
+    base: renderBase(source, geometry),
+    rel: relativeRegions(geometry),
+  });
+}
 
+/**
+ * Build a face from an already-aligned base frame and its region rectangles.
+ *
+ * The stock library ships exactly that: square crops with the eyes levelled and
+ * a manifest of `rel` rectangles computed offline by tools/build_stock_faces.py.
+ * Loading one therefore needs no detector, no alignment pass and no network
+ * beyond the image itself.
+ */
+export function faceFromBase({ id = uid('face'), label, base, rel, stock = false }) {
+  return assembleFace({ id, label, base, rel, stock });
+}
+
+/** Shared tail of both paths: cut the pieces and measure the skin. */
+function assembleFace({ id, label, base, rel, source = null, geometry = null, stock = false }) {
+  const rng = makeRng(hashSeed(id));
   const pieces = {};
   const skin = {};
+
   for (const slot of SLOTS) {
     const region = rel[slot.id];
     pieces[slot.id] = cutPiece({
@@ -58,14 +77,8 @@ export function extractFace({ id = uid('face'), label, source, geometry }) {
   }
 
   return {
-    id,
-    label,
-    source,
-    geometry,
-    base,
-    rel,
-    pieces,
-    skin,
+    id, label, source, geometry, base, rel, pieces, skin, stock,
+    tone: averageTone(skin),
     thumb: makeThumb(base),
     createdAt: Date.now(),
   };
@@ -192,9 +205,9 @@ export function pieceSurface(piece, style = 'soft') {
 /* ------------------------------------------------------------------ extras */
 
 /**
- * Average skin tone just outside a region — the target a transplanted piece is
- * blended toward. Sampling the ring rather than the region itself keeps lips
- * and eyebrows from dragging the average somewhere strange.
+ * Colour statistics of the skin just outside a region — the target a
+ * transplanted piece is re-lit toward. Sampling the ring rather than the region
+ * itself keeps lips and eyebrows from dragging the average somewhere strange.
  */
 function sampleSkinAround(base, region) {
   const pad = 0.35;
@@ -214,7 +227,18 @@ function sampleSkinAround(base, region) {
   ctx.fill();
   ctx.globalCompositeOperation = 'source-over';
 
-  return meanColor(ring, { region: 1 });
+  return channelStats(ring, { region: 1 });
+}
+
+/** One skin colour for the whole face — how strangers get matched to a hero. */
+function averageTone(skin) {
+  const values = Object.values(skin);
+  const sum = values.reduce(
+    (acc, c) => ({ r: acc.r + c.r, g: acc.g + c.g, b: acc.b + c.b }),
+    { r: 0, g: 0, b: 0 },
+  );
+  const n = Math.max(1, values.length);
+  return { r: sum.r / n, g: sum.g / n, b: sum.b / n };
 }
 
 function makeThumb(base) {

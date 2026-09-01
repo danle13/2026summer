@@ -6,13 +6,20 @@
  * come in named *kinds*, each with a different flavour of wrongness, and the
  * difficulty setting decides how hard the warps push.
  *
- *   real    the untouched piece — exactly one per slot
- *   guest   the same feature from another person you uploaded  ← the best ones
- *   twin    their own feature, reshaped until it isn't theirs
- *   mirror  their other eyebrow, flipped over
- *   tone    their own feature, recoloured
- *   wander  a different feature entirely, squashed to fit (chaos)
- *   doodle  hand-drawn cartoon (chaos)
+ *   real      the untouched piece — exactly one per slot
+ *   guest     the same feature from another person you uploaded  ← the best ones
+ *   stranger  the same feature from the bundled library of faces ← the workhorse
+ *   mirror    their other eyebrow, flipped over
+ *   twin      their own feature, reshaped until it isn't theirs
+ *   wander    a different feature entirely, squashed to fit (chaos)
+ *   doodle    hand-drawn cartoon (chaos)
+ *
+ * Twins used to do most of the work here, and they were the wrong tool: a
+ * stretched copy of somebody's nose reads as their nose with a filter on, not
+ * as a different nose. Real faces are now the default impostor and twins are
+ * filler for when none are available. What difficulty controls is *which*
+ * strangers turn up — Gentle picks the ones whose colouring is least like the
+ * hero's, Brutal picks the closest matches and mixes a couple of twins back in.
  */
 
 import { SLOTS, SLOT_BY_ID, mirrorPartner } from './slots.js';
@@ -22,7 +29,7 @@ import {
   cloneCanvas, createCanvas, rescale, warpBulge, warpShear, rotated,
   filtered, flipH, drawCover,
 } from '../lib/canvas.js';
-import { makeRng, hashSeed, randSigned, pick, shuffle } from '../lib/random.js';
+import { makeRng, hashSeed, randSigned, pick, shuffle, sample } from '../lib/random.js';
 import { rad } from '../lib/geometry.js';
 
 /**
@@ -32,17 +39,20 @@ import { rad } from '../lib/geometry.js';
  */
 export const DIFFICULTIES = {
   gentle: {
-    label: 'Gentle', blurb: 'Obvious once you look',
+    label: 'Gentle', blurb: 'Strangers who look nothing like them',
+    strangerOrder: 'far', twins: 0, mirrorChance: 0,
     scale: [0.16, 0.30], bulge: [0.20, 0.38], shear: [0.10, 0.20],
     rotate: [5, 12], hue: [10, 24], bright: [0.08, 0.16],
   },
   tricky: {
-    label: 'Tricky', blurb: 'You will second-guess yourself',
+    label: 'Tricky', blurb: 'Strangers with similar colouring',
+    strangerOrder: 'mixed', twins: 1, mirrorChance: 0.5,
     scale: [0.07, 0.15], bulge: [0.09, 0.19], shear: [0.04, 0.09],
     rotate: [2, 5], hue: [4, 10], bright: [0.03, 0.08],
   },
   brutal: {
-    label: 'Brutal', blurb: 'Only a parent could tell',
+    label: 'Brutal', blurb: 'The closest matches, plus their own features reshaped',
+    strangerOrder: 'near', twins: 2, mirrorChance: 1,
     scale: [0.03, 0.07], bulge: [0.04, 0.09], shear: [0.015, 0.045],
     rotate: [1, 2.5], hue: [1, 4], bright: [0.01, 0.035],
   },
@@ -55,14 +65,17 @@ export const DIFFICULTY_IDS = Object.keys(DIFFICULTIES);
  *
  * @param {object}   opts
  * @param {object}   opts.hero        the face being rebuilt — its pieces are the real ones
- * @param {object[]} opts.guests      other loaded faces, if any
+ * @param {object[]} opts.guests      other faces the visitor loaded
+ * @param {object[]} opts.strangers   faces from the bundled library, already ranked
  * @param {number}   opts.perSlot     how many options each slot should offer
  * @param {string}   opts.difficulty  key of DIFFICULTIES
  * @param {boolean}  opts.chaos       allow wander/doodle decoys
  * @param {number}   opts.seed        reshuffling bumps this
  * @returns {Record<string, import('./extract.js').Piece[]>}
  */
-export function buildPartsBin({ hero, guests = [], perSlot = 6, difficulty = 'tricky', chaos = false, seed = 1 }) {
+export function buildPartsBin({
+  hero, guests = [], strangers = [], perSlot = 6, difficulty = 'tricky', chaos = false, seed = 1,
+}) {
   const profile = DIFFICULTIES[difficulty] || DIFFICULTIES.tricky;
   const bin = {};
 
@@ -70,25 +83,39 @@ export function buildPartsBin({ hero, guests = [], perSlot = 6, difficulty = 'tr
     const rng = makeRng(hashSeed(`${hero.id}:${slot.id}:${seed}:${difficulty}:${chaos}`));
     const options = [hero.pieces[slot.id]];
 
-    // 1. Real people first — nothing beats an actual different nose.
-    for (const guest of guestPiecesFor(slot.id, guests, rng)) {
+    // 1. People the visitor actually knows beat anything synthetic.
+    for (const guest of realPiecesFrom(slot.id, shuffle(rng, guests).slice(0, 2), 'guest', rng)) {
       if (options.length >= perSlot) break;
       options.push(guest);
     }
 
-    // 2. Their other side, mirrored. Uncanny in the best way.
+    // 2. Work out how much room the non-stranger decoys want, then fill the
+    //    rest with real features from the library.
     const partner = mirrorPartner(slot.id);
-    if (partner && hero.pieces[partner] && options.length < perSlot && rng() < 0.85) {
+    const wantMirror = !!(partner && hero.pieces[partner]) && rng() < profile.mirrorChance;
+    const wantTwins = strangers.length ? profile.twins : perSlot;   // no library -> all twins
+    const wantChaos = chaos ? 2 : 0;
+    const reserved = (wantMirror ? 1 : 0) + wantTwins + wantChaos;
+    const strangerBudget = Math.max(0, perSlot - options.length - reserved);
+
+    for (const piece of realPiecesFrom(slot.id, sample(rng, strangers, strangerBudget), 'stranger', rng)) {
+      if (options.length >= perSlot) break;
+      options.push(piece);
+    }
+
+    // 3. Their other side, mirrored. Quietly uncanny.
+    if (wantMirror && options.length < perSlot) {
       options.push(mirrorDecoy(hero, slot.id, partner));
     }
 
-    // 3. Chaos options, when the visitor asked for them.
+    // 4. Chaos options, when the visitor asked for them.
     if (chaos) {
       if (options.length < perSlot) options.push(doodleDecoy(hero, slot, rng));
       if (options.length < perSlot && rng() < 0.7) options.push(wanderDecoy(hero, slot, rng));
     }
 
-    // 4. Fill whatever is left with reshaped versions of their own feature.
+    // 5. Reshaped copies of their own feature, to taste — and as the safety net
+    //    if the library never loaded.
     let guard = 0;
     while (options.length < perSlot && guard++ < 40) {
       options.push(twinDecoy(hero, slot, rng, profile));
@@ -100,21 +127,29 @@ export function buildPartsBin({ hero, guests = [], perSlot = 6, difficulty = 'tr
   return bin;
 }
 
-/* ------------------------------------------------------------ decoy kinds */
-
-function guestPiecesFor(slotId, guests, rng) {
-  // Two guests per slot at most, so an upload of six people doesn't crowd out
-  // every other kind of wrongness.
-  return shuffle(rng, guests)
+/**
+ * Lift the genuine feature out of somebody else's face and relabel it as an
+ * impostor. Nothing is altered — that is the point; it is a real feature that
+ * simply belongs to a different person.
+ */
+function realPiecesFrom(slotId, faces, kind, rng) {
+  return faces
     .filter(face => face.pieces[slotId])
-    .slice(0, 2)
-    .map(face => ({
-      ...face.pieces[slotId],
-      id: `${face.pieces[slotId].id}@guest`,
-      real: false,
-      kind: 'guest',
-      note: `${face.label}'s actual ${SLOT_BY_ID[slotId].noun}`,
-    }));
+    .map(face => {
+      const source = face.pieces[slotId];
+      return {
+        ...source,
+        id: `${source.id}@${kind}`,
+        real: false,
+        kind,
+        note: kind === 'guest'
+          ? `${face.label}'s actual ${SLOT_BY_ID[slotId].noun}`
+          : `Somebody else's actual ${SLOT_BY_ID[slotId].noun}`,
+        // Fresh cache: the same piece is drawn with this slot's edge treatment.
+        _surfaces: new Map(),
+        tabs: source.tabs.map(t => (rng() < 0.35 ? -t : t)),
+      };
+    });
 }
 
 function mirrorDecoy(hero, slotId, partnerId) {
@@ -214,8 +249,9 @@ function doodleDecoy(hero, slot, rng) {
 /* ---------------------------------------------------------------- helpers */
 
 export const KIND_LABELS = {
-  real:   { text: 'REAL',   tone: 'ok'    },
-  guest:  { text: 'GUEST',  tone: 'grape' },
+  real:     { text: 'REAL',     tone: 'ok'    },
+  guest:    { text: 'GUEST',    tone: 'grape' },
+  stranger: { text: 'STRANGER', tone: 'grape' },
   twin:   { text: 'WARPED', tone: 'warn'  },
   mirror: { text: 'MIRROR', tone: 'warn'  },
   tone:   { text: 'TINTED', tone: 'warn'  },

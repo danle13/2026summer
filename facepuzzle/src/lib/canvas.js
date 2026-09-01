@@ -180,11 +180,15 @@ export function applyJigsawMask(canvas, tabs, { stroke = 'rgba(255,255,255,.85)'
 /* ----------------------------------------------------------------- colour */
 
 /**
- * Average colour of the opaque pixels, optionally restricted to a centred
- * fraction of the canvas. Used both to recolour transplanted parts and to read
- * the skin tone of the face they are landing on.
+ * Mean and standard deviation per channel over the opaque pixels, optionally
+ * restricted to a centred fraction of the canvas.
+ *
+ * The standard deviation matters as much as the mean: two faces can share a
+ * skin tone and still look pasted together because one was shot in flat window
+ * light and the other under a hard lamp. Matching spread as well as centre is
+ * what makes a transplant sit down properly.
  */
-export function meanColor(canvas, { region = 0.7, minAlpha = 40 } = {}) {
+export function channelStats(canvas, { region = 0.7, minAlpha = 40 } = {}) {
   const w = canvas.width, h = canvas.height;
   const rw = Math.max(1, Math.round(w * region));
   const rh = Math.max(1, Math.round(h * region));
@@ -193,66 +197,86 @@ export function meanColor(canvas, { region = 0.7, minAlpha = 40 } = {}) {
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const { data } = ctx.getImageData(rx, ry, rw, rh);
 
-  let r = 0, g = 0, b = 0, n = 0;
-  // Stride by 2px in each direction; a mean does not need every sample.
+  let n = 0;
+  const sum = [0, 0, 0];
+  const sumSq = [0, 0, 0];
+  // Stride by 2px in each direction; these statistics do not need every sample.
   for (let y = 0; y < rh; y += 2) {
     for (let x = 0; x < rw; x += 2) {
       const i = (y * rw + x) * 4;
       if (data[i + 3] < minAlpha) continue;
-      r += data[i]; g += data[i + 1]; b += data[i + 2]; n++;
+      for (let c = 0; c < 3; c++) {
+        const v = data[i + c];
+        sum[c] += v;
+        sumSq[c] += v * v;
+      }
+      n++;
     }
   }
-  if (!n) return { r: 128, g: 128, b: 128 };
-  return { r: r / n, g: g / n, b: b / n };
+  if (!n) return { r: 128, g: 128, b: 128, sr: 40, sg: 40, sb: 40 };
+
+  const mean = sum.map(v => v / n);
+  const std = sumSq.map((sq, c) => Math.sqrt(Math.max(1, sq / n - mean[c] * mean[c])));
+  return { r: mean[0], g: mean[1], b: mean[2], sr: std[0], sg: std[1], sb: std[2] };
+}
+
+/** Mean colour only — the common case. */
+export function meanColor(canvas, opts) {
+  const { r, g, b } = channelStats(canvas, opts);
+  return { r, g, b };
 }
 
 /**
- * Average colour of the *outer band* of a piece — the skin around the feature
+ * Statistics for the *outer band* of a piece — the skin around the feature
  * rather than the feature itself.
  *
  * This is what matters when transplanting: a nose piece's overall mean is
- * dragged around by the nostrils, and a mouth's by the lips, so matching those
- * to the destination's skin overcorrects and leaves a grey smear. Matching the
+ * dragged around by the nostrils and a mouth's by the lips, so matching those
+ * to the destination's skin overcorrects and leaves a grey smear. Measuring the
  * border instead lands the surrounding skin on the destination's tone and lets
- * the feature keep its own contrast.
+ * the feature keep its own colouring.
  */
-export function ringColor(canvas, { hole = 0.62 } = {}) {
-  const ring = createCanvas(64, 64);
-  ring.ctx.drawImage(canvas, 0, 0, 64, 64);
+export function ringStats(canvas, { hole = 0.62 } = {}) {
+  const ring = createCanvas(72, 72);
+  ring.ctx.drawImage(canvas, 0, 0, 72, 72);
   ring.ctx.globalCompositeOperation = 'destination-out';
   ring.ctx.beginPath();
-  ring.ctx.ellipse(32, 32, 32 * hole, 32 * hole, 0, 0, Math.PI * 2);
+  ring.ctx.ellipse(36, 36, 36 * hole, 36 * hole, 0, 0, Math.PI * 2);
   ring.ctx.fill();
   ring.ctx.globalCompositeOperation = 'source-over';
-  return meanColor(ring.canvas, { region: 1 });
+  return channelStats(ring.canvas, { region: 1 });
 }
 
 /**
- * Nudge a piece toward a target colour so a transplanted nose stops looking
- * like a sticker. Multiply pulls the tone, a light screen pass keeps highlights
- * from muddying.
+ * Re-light a transplanted piece to match where it is going.
+ *
+ * Per channel: recentre the piece's surrounding skin on the destination's, and
+ * rescale its contrast to match. `strength` interpolates the whole correction,
+ * so 0 leaves the piece untouched and 1 matches fully.
+ *
+ * Doing this with canvas blend modes instead is tempting and is a trap:
+ * `multiply` can only darken, so lifting a dark piece onto light skin needs a
+ * `screen` pass, and that adds the same amount to every channel and drains the
+ * colour out of the result.
  */
 export function harmonize(canvas, target, strength = 0.5) {
   if (strength <= 0) return canvas;
   const s = clamp(strength, 0, 1);
-  const source = ringColor(canvas);
+  const source = ringStats(canvas);
 
-  // Per-channel gain, applied directly to the pixels. Doing this with canvas
-  // blend modes instead looks tempting and is a trap: `multiply` can only ever
-  // darken, so lifting a dark piece onto light skin needs a `screen` pass,
-  // which adds the same amount to every channel and drains the colour out of
-  // the result. A plain multiply per channel is what white balance actually is.
-  const gain = {
-    r: 1 + (clamp(target.r / Math.max(1, source.r), 0.4, 2.6) - 1) * s,
-    g: 1 + (clamp(target.g / Math.max(1, source.g), 0.4, 2.6) - 1) * s,
-    b: 1 + (clamp(target.b / Math.max(1, source.b), 0.4, 2.6) - 1) * s,
-  };
+  const curves = ['r', 'g', 'b'].map(c => {
+    const sd = `s${c}`;
+    // Contrast ratio, damped and clamped — a piece cut from a noisy photo can
+    // otherwise be pushed to something posterised.
+    const full = clamp(target[sd] / Math.max(4, source[sd]), 0.62, 1.6);
+    const gain = 1 + (full - 1) * s;
+    const shift = (target[c] - source[c]) * s;
+    return buildCurve(source[c], gain, shift);
+  });
 
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const { data } = image;
-  // Precompute the 256-entry curve per channel rather than multiplying per pixel.
-  const curves = [lut(gain.r), lut(gain.g), lut(gain.b)];
   for (let i = 0; i < data.length; i += 4) {
     if (data[i + 3] === 0) continue;
     data[i]     = curves[0][data[i]];
@@ -264,18 +288,25 @@ export function harmonize(canvas, target, strength = 0.5) {
 }
 
 /**
- * A 256-entry lookup for one channel gain, with a soft shoulder near white so
- * a strong lift rolls off instead of clipping to a flat highlight.
+ * A 256-entry lookup for one channel: centre on `pivot`, scale by `gain`, shift
+ * by `shift`, with soft shoulders at both ends so a strong correction rolls off
+ * instead of clipping to flat white or flat black.
  */
-function lut(gain) {
+function buildCurve(pivot, gain, shift) {
   const table = new Uint8ClampedArray(256);
+  const KNEE = 46;
   for (let v = 0; v < 256; v++) {
-    const lifted = v * gain;
-    table[v] = lifted <= 200 ? lifted : 200 + (255 - 200) * (1 - Math.exp(-(lifted - 200) / 55));
+    const out = (v - pivot) * gain + pivot + shift;
+    if (out > 255 - KNEE) {
+      table[v] = 255 - KNEE + KNEE * (1 - Math.exp(-(out - (255 - KNEE)) / KNEE));
+    } else if (out < KNEE) {
+      table[v] = KNEE - KNEE * (1 - Math.exp(-(KNEE - out) / KNEE));
+    } else {
+      table[v] = out;
+    }
   }
   return table;
 }
-
 
 /**
  * Apply a CSS filter string to a canvas, returning a new one. Cheap way to get

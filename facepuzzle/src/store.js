@@ -5,7 +5,8 @@
  */
 
 import { SLOTS, SLOT_IDS } from './face/slots.js';
-import { buildPartsBin, countReal } from './face/decoys.js';
+import { buildPartsBin, countReal, DIFFICULTIES } from './face/decoys.js';
+import { selectStrangers } from './face/stockFaces.js';
 import { clearBlendCache } from './face/composite.js';
 import { readPrefs, writePrefs } from './lib/storage.js';
 import { makeRng, hashSeed, pick } from './lib/random.js';
@@ -20,7 +21,9 @@ const DEFAULT_PREFS = {
 };
 
 export const state = {
-  faces: [],            // every uploaded / sampled face, in arrival order
+  faces: [],            // every uploaded face, in arrival order
+  strangers: [],        // faces borrowed from the bundled library for this deal
+  strangersLoading: false,
   heroId: null,         // whose face is being rebuilt
   bin: {},              // slot id -> Piece[]
   selection: {},        // slot id -> piece id
@@ -86,6 +89,7 @@ export function addFace(face, { makeHero = false } = {}) {
   if (makeHero || !state.heroId) state.heroId = face.id;
   rebuildBin({ reseed: true });
   notify('faces');
+  refreshStrangers();
   return face;
 }
 
@@ -97,6 +101,7 @@ export function removeFace(id) {
   clearBlendCache();
   rebuildBin({ reseed: true });
   notify('faces');
+  refreshStrangers();
 }
 
 export function setHero(id) {
@@ -104,12 +109,51 @@ export function setHero(id) {
   state.heroId = id;
   rebuildBin({ reseed: true });
   notify('hero');
+  refreshStrangers();   // a new hero wants strangers matched to *their* colouring
 }
 
 /**
  * Regenerate the options for every slot. Called whenever anything that feeds
  * the decoy generator changes.
  */
+/**
+ * Pull a fresh set of strangers for the current hero and difficulty, then
+ * rebuild the bin around them.
+ *
+ * The library is fetched over the network, so this is fire-and-forget: the bin
+ * is built immediately from whatever is on hand (warped decoys on a cold start)
+ * and rebuilt when the real faces arrive. A token guards against an older,
+ * slower fetch overwriting a newer deal.
+ */
+let strangerToken = 0;
+
+export function refreshStrangers() {
+  const current = hero();
+  if (!current) return Promise.resolve();
+
+  const token = ++strangerToken;
+  state.strangersLoading = true;
+  notify('strangers');
+
+  const profile = DIFFICULTIES[state.prefs.difficulty] || DIFFICULTIES.tricky;
+  return selectStrangers({
+    heroTone: current.tone,
+    order: profile.strangerOrder,
+    seed: state.seed,
+  }).then(faces => {
+    if (token !== strangerToken) return;   // superseded by a newer deal
+    state.strangers = faces;
+    state.strangersLoading = false;
+    rebuildBin({ keepSelection: true });
+    notify('bin');
+  }).catch(err => {
+    if (token !== strangerToken) return;
+    console.warn('[face-salad] could not load strangers:', err);
+    state.strangersLoading = false;
+    notify('strangers');
+  });
+}
+
 export function rebuildBin({ reseed = false, keepSelection = false } = {}) {
   const current = hero();
   if (!current) { state.bin = {}; state.selection = {}; return; }
@@ -120,6 +164,7 @@ export function rebuildBin({ reseed = false, keepSelection = false } = {}) {
   state.bin = buildPartsBin({
     hero: current,
     guests: guests(),
+    strangers: state.strangers,
     perSlot: state.prefs.perSlot,
     difficulty: state.prefs.difficulty,
     chaos: state.prefs.chaos,
@@ -169,6 +214,8 @@ export function setPref(key, value) {
   if (key === 'difficulty' || key === 'chaos' || key === 'perSlot') {
     rebuildBin({ reseed: true, keepSelection: false });
   }
+  // Difficulty also decides *which* strangers get borrowed.
+  if (key === 'difficulty') refreshStrangers();
   if (key === 'blend' || key === 'style') clearBlendCache();
   notify(`pref:${key}`);
 }

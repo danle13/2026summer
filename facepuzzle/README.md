@@ -2,8 +2,8 @@
 
 Drop in a photo of someone you love. Face Salad finds the face, lifts out the
 eyebrows, the eyes, the nose, the mouth and the jaw as puzzle pieces, and hands
-them back mixed in with a pile of impostors. Their real nose is in there
-somewhere. Probably.
+them back mixed in with **real features borrowed from two dozen other faces**.
+Their real nose is in there somewhere. Probably.
 
 It is a party game for families, couples and friends — the fun is in seeing
 someone you know inside out wearing a stranger's chin, and in discovering that
@@ -28,7 +28,7 @@ node scripts/serve.mjs        # http://localhost:8080/
 step and no dependencies.)
 
 Then either drop in a photo, paste one with ⌘V, or click one of the three
-painted sample faces to try it without handing over anything real.
+sample faces to try it without handing over anything real.
 
 ### The four modes
 
@@ -41,13 +41,29 @@ painted sample faces to try it without handing over anything real.
 
 Keyboard: `1`–`4` switch modes, `0` goes back to the front page.
 
-### It gets much better with two people
+### Where the impostors come from
 
-Add a second face — a partner, a sibling, anyone — and their *real* features
-join the lineup as decoys. A warped copy of your own nose is a puzzle; your
-brother's actual nose on your face is a completely different experience. A
-group photo is the fastest way in: every face the detector finds becomes its
-own entry in the parts bin.
+Most options in a lineup are **genuine features belonging to other faces**, taken
+from a library of 23 portraits that ships with the app. That is the difference
+between a game and a shrug: a stretched copy of somebody's own nose reads as
+their nose with a filter on, whereas a real stranger's nose is a real stranger's
+nose.
+
+Nobody in that library is a real person — every image was produced by a
+text-to-image model, so no actual person's face was scraped or reused. See
+[`stock/NOTICE.md`](stock/NOTICE.md) for provenance and licensing.
+
+Difficulty controls *which* strangers turn up:
+
+| | |
+| --- | --- |
+| **Gentle** | strangers whose colouring is least like the hero's |
+| **Tricky** | similar colouring, plus one reshaped copy of their own feature per slot |
+| **Brutal** | the closest tone matches in the library, two reshaped copies, and their mirrored other side |
+
+**It gets better again with two people.** Add a partner or a sibling and their
+real features outrank the library entirely. A group photo is the fastest way in:
+every face the detector finds becomes its own entry in the parts bin.
 
 ---
 
@@ -55,10 +71,14 @@ own entry in the parts bin.
 
 ```
 photo ──▶ detector ──▶ regions ──▶ extract ──▶ decoys ──▶ composite
-            │            │           │           │
-       MediaPipe or   feature     upright     impostors    the face,
-       four clicked   rectangles  square      per slot     reassembled
-       anchors                    crop
+            │            │           │           ▲
+       MediaPipe or   feature     upright        │        the face,
+       four clicked   rectangles  square         │        reassembled
+       anchors                    crop           │
+                                                 │
+                     stock/ ──────────────────────
+                     23 pre-aligned faces, rectangles
+                     precomputed offline — no detector needed
 ```
 
 **Finding the face.** `src/face/detector.js` lazily pulls MediaPipe's Face
@@ -79,18 +99,23 @@ eyes, nose and mouth. Each one carries its own padding and feathering, because a
 brow needs a lot of vertical slack to come out looking like part of a face
 rather than a floating strip.
 
+**The stock library** (`src/face/stockFaces.js`, `stock/`) is what makes a single
+uploaded photo playable. Each face ships pre-aligned — square, eyes level — with
+its feature rectangles precomputed by the scripts in `tools/`, so loading one
+costs a single image fetch and no detection at all. Only the eight strangers
+chosen for the current deal are downloaded, ranked by how close their skin tone
+is to the hero's.
+
 **Making impostors** (`src/face/decoys.js`) is where the game actually lives.
 Decoys come in kinds, in rough order of how convincing they are:
 
 - `guest` — the same feature from another person you uploaded. Unbeatable.
+- `stranger` — the same feature from the bundled library. The workhorse.
 - `mirror` — their *other* eyebrow, flipped. Quietly uncanny.
 - `twin` — their own feature, stretched, swollen, sheared, tilted and recoloured.
-  Each warp is small; the stack is what makes it read as somebody else.
+  Filler, and the safety net if the library cannot be reached.
 - `wander` — a different feature entirely, squashed into the slot. Chaos mode.
 - `doodle` — a hand-drawn cartoon part generated on the fly. Also chaos mode.
-
-Three difficulty settings scale how hard the warps push, from *Gentle* ("obvious
-once you look") to *Brutal* ("only a parent could tell").
 
 **Putting it back together** (`src/face/composite.js`) draws the hero's own crop
 and paints each chosen piece into that hero's own feature rectangle — so a tall
@@ -98,6 +123,20 @@ face borrowing from a round one still ends up looking like a face. Transplanted
 pieces are blended toward the destination's skin tone, which is the difference
 between a swap and a sticker. An untouched piece is skipped entirely so a face
 nobody has meddled with is pixel-for-pixel the original.
+
+Transplanted pieces are re-lit to match where they land: `harmonize` in
+`src/lib/canvas.js` measures the *border* of the piece — the skin around the
+feature, not the feature itself, which would be dragged around by lips and
+nostrils — and recentres and rescales each channel onto the destination's own
+skin statistics. Matching the spread as well as the mean is what stops a face
+shot in flat window light from looking pasted onto one shot under a hard lamp.
+
+One subtlety in the quiz: a genuine piece would normally be skipped by the
+compositor, since the original is already in the base at full resolution. On a
+quiz board that would make the real option the only one that had not been
+through a crop-and-rescale, and the softness of the others would give it away —
+so `renderComposite` takes a `uniform` flag that forces every option down the
+same path.
 
 Piece edges come in two styles: a soft feathered vignette, or proper jigsaw tabs
 with knobs and necks (`jigsawPath` in `src/lib/canvas.js`).
@@ -108,6 +147,8 @@ with knobs and necks (`jigsawPath` in `src/lib/canvas.js`).
 
 ```
 index.html              markup shell; views are empty <section>s
+stock/                  the bundled face library + manifest + NOTICE.md
+tools/                  offline scripts that build stock/ (not needed to run)
 styles/
   base.css              design tokens, reset, buttons, toasts
   app.css               the chrome and the five views
@@ -130,7 +171,7 @@ src/
     decoys.js           impostor generation
     doodles.js          procedural cartoon parts
     composite.js        reassembly, punched boards, share cards
-    samples.js          three painted stand-in portraits
+    stockFaces.js       loads the bundled library, ranked by skin tone
   ui/
     intro.js  studio.js  hunt.js  scatter.js  gallery.js
     manualPicker.js  toast.js  effects.js
@@ -154,3 +195,9 @@ transitions. `prefers-color-scheme` is respected.
 Please only feed this pictures of people who would find it funny. It is built
 for showing your sister the version of her with your dad's eyebrows, not for
 anything else.
+
+The same reasoning is why the bundled library is synthetic. Scraping portraits
+of real people off the web would have been the quick way to get photorealistic
+spare parts, and it would have meant shipping identifiable strangers' faces,
+without their knowledge, into an app whose entire purpose is chopping faces up.
+Generated faces give the same realism and depict nobody.

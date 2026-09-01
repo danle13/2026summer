@@ -13,7 +13,7 @@ import { DIFFICULTIES, DIFFICULTY_IDS, KIND_LABELS } from '../face/decoys.js';
 import { renderComposite, renderPieceThumb, renderShareCard } from '../face/composite.js';
 import { downloadCanvas, createCanvas } from '../lib/canvas.js';
 import { makeRng, shuffle } from '../lib/random.js';
-import { state, hero, subscribe, rebuildBin, setPref, notify } from '../store.js';
+import { state, hero, subscribe, rebuildBin, refreshStrangers, setPref, notify } from '../store.js';
 import { confetti, shake } from './effects.js';
 import { toastOk } from './toast.js';
 
@@ -192,7 +192,7 @@ export function mount(root, app) {
       const art = zoomed
         ? renderPieceThumb(piece, { style: 'soft', size: 320 })
         : zoomToFace(renderComposite({
-            hero: face, bin: state.bin, selection,
+            hero: face, bin: state.bin, selection, uniform: true,
             style: 'soft', blend: state.prefs.blend, size: 400,
           }));
       card.appendChild(art);
@@ -272,7 +272,7 @@ export function mount(root, app) {
       el('div.hunt-foot',
         el('button.btn.btn-primary', {
           type: 'button',
-          on: { click: () => { rebuildBin({ reseed: true }); notify('bin'); start(); } },
+          on: { click: () => { rebuildBin({ reseed: true }); refreshStrangers(); notify('bin'); start(); } },
         }, '🔁 New impostors, same face'),
         el('button.btn', { type: 'button', on: { click: shareScore } }, '⬇︎ Save the scorecard'),
         el('button.btn', { type: 'button', on: { click: () => app.goto('studio') } }, 'Back to the studio'),

@@ -5,7 +5,7 @@
  */
 
 import { el, clear } from '../lib/dom.js';
-import { SAMPLE_PRESETS, drawSampleFace } from '../face/samples.js';
+import { featuredIds, loadStockFaces } from '../face/stockFaces.js';
 import { renderAvatar } from '../face/composite.js';
 import { state, subscribe } from '../store.js';
 
@@ -21,8 +21,9 @@ export function renderIntro(root, app) {
         el('h1', 'Take your favourite person ', el('span.wobble', 'apart'), '.'),
         el('p.hero-lede',
           'Drop in a photo. Face Salad finds the face, lifts out the eyebrows, the nose, ' +
-          'the mouth, the jaw — and hands them back mixed in with a pile of impostors. ' +
-          'Their real nose is in there. Probably. Can you still pick it out?'),
+          'the mouth, the jaw — and hands them back mixed in with real features borrowed ' +
+          'from two dozen other faces. Their real nose is in there. Probably. Can you ' +
+          'still pick it out?'),
         el('div.hero-cta',
           el('button.btn.btn-primary.btn-lg', {
             type: 'button',
@@ -43,7 +44,7 @@ export function renderIntro(root, app) {
 
     el('div.steps',
       step(1, 'Feed it a face', 'Any photo where you can see both eyes. A group shot is even better — everyone in it joins the parts bin.'),
-      step(2, 'Watch it come apart', 'Eight pieces: hair line, both brows, both eyes, nose, mouth, jaw. Each one gets a lineup of impostors.'),
+      step(2, 'Watch it come apart', 'Eight pieces: hair line, both brows, both eyes, nose, mouth, jaw. Each one gets a lineup of real features belonging to other people.'),
       step(3, 'Put them back wrong', 'Swap features in the Studio, or play Impostor Hunt and try to spot the genuine parts under pressure.'),
       step(4, 'Stick it on the fridge', 'Save the monsters you make. They live in your browser, not on anyone else\'s computer.'),
     ),
@@ -55,6 +56,10 @@ export function renderIntro(root, app) {
         'browser tab, and it disappears the moment you close it — apart from anything you deliberately save ' +
         'to the Fridge, which is stored locally on this device. Please only use photos of people who would ' +
         'find this funny.'),
+      el('p.muted.tiny', { style: { marginTop: '.6rem' } },
+        'The built-in strangers are not real people either: every one of them was produced by a ' +
+        'text-to-image model, so no actual person\u2019s face was scraped or reused to make this. ' +
+        'They come from the SFHQ-T2I dataset (MIT licensed).'),
     ),
   ));
 }
@@ -103,23 +108,32 @@ function buildDropzone(app) {
   return zone;
 }
 
+/**
+ * Three faces from the bundled library, offered as a way in for anyone who is
+ * not ready to hand over a photo of a real person. They load lazily; if the
+ * library is unreachable the row simply does not appear.
+ */
 function buildSampleRow(app) {
   const row = el('div.sample-row');
-  for (const preset of SAMPLE_PRESETS) {
-    const button = el('button.sample-btn', {
-      type: 'button',
-      title: `Try ${preset.label}`,
-      'aria-label': `Try the sample face ${preset.label}`,
-      on: { click: () => app.addSample(preset.id) },
-    });
-    // Drawing three portraits is a few milliseconds; do it lazily anyway so the
-    // landing page paints first.
-    requestAnimationFrame(() => {
-      const { canvas } = drawSampleFace(preset.id);
-      button.appendChild(renderAvatar(canvas, 128));
-    });
-    row.appendChild(button);
-  }
+
+  featuredIds(3)
+    .then(ids => (ids.length ? loadStockFaces(ids) : []))
+    .then(faces => {
+      if (!faces.length) {
+        row.appendChild(el('p.tiny.muted', 'Sample faces could not be loaded — pick a photo instead.'));
+        return;
+      }
+      for (const face of faces) {
+        row.appendChild(el('button.sample-btn', {
+          type: 'button',
+          title: 'Take this face apart',
+          'aria-label': 'Try one of the sample faces',
+          on: { click: () => app.useStockFace(face) },
+        }, renderAvatar(face, 128)));
+      }
+    })
+    .catch(() => {});
+
   return row;
 }
 

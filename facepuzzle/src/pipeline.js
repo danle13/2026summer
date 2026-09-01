@@ -81,17 +81,6 @@ export async function ingest({ input, label, requestAnchors, onProgress = () => 
   return [extractFace({ id: uid('face'), label: baseLabel, source, geometry })];
 }
 
-/**
- * Build a face directly from known anchors — used by the sample portraits,
- * which are drawn to spec and need no detection at all.
- */
-export function ingestKnown({ canvas, anchors, label }) {
-  const geometry = buildFromAnchors(anchors);
-  const problem = validateGeometry(geometry, canvas.width, canvas.height);
-  if (problem) throw new IngestError(problem);
-  return extractFace({ id: uid('face'), label, source: canvas, geometry });
-}
-
 /* ---------------------------------------------------------------- helpers */
 
 async function toCanvas(input) {

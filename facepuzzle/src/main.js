@@ -10,9 +10,8 @@ import { $, $$, clear } from './lib/dom.js';
 import { canvasToBlob } from './lib/canvas.js';
 import { saveCreation } from './lib/storage.js';
 import { renderShareCard } from './face/composite.js';
-import { drawSampleFace } from './face/samples.js';
 import { prewarmDetector } from './face/detector.js';
-import { ingest, ingestKnown, IngestCancelled, IngestError } from './pipeline.js';
+import { ingest, IngestCancelled, IngestError } from './pipeline.js';
 import { requestAnchors } from './ui/manualPicker.js';
 import { toast, toastOk, toastBad } from './ui/toast.js';
 import {
@@ -64,18 +63,26 @@ const app = {
     }
   },
 
-  addSample(id) {
-    try {
-      const { canvas, anchors, label } = drawSampleFace(id);
-      // Two people with the same name would be confusing in the parts bin.
-      const taken = state.faces.some(f => f.label === label);
-      const face = ingestKnown({ canvas, anchors, label: taken ? `${label} again` : label });
-      addFace(face, { makeHero: !hasFaces() });
-      toastOk(`${face.label} joined the parts bin.`);
+  /**
+   * Adopt a face from the bundled library as the one being rebuilt. The record
+   * is already cut into pieces by the time it gets here, so this is just a
+   * matter of adding it and switching view.
+   */
+  useStockFace(face) {
+    if (state.faces.some(f => f.id === face.id)) {
       app.goto('studio');
-    } catch (err) {
-      toastBad(err.message || 'Could not build that sample.');
+      return;
     }
+    addFace(face, { makeHero: !hasFaces() });
+    toastOk(`${face.label} is in pieces.`);
+    app.goto('studio');
+  },
+
+  /** Add a library face as spare parts without making it the hero. */
+  addSpareFace(face) {
+    if (state.faces.some(f => f.id === face.id)) return;
+    addFace(face, { makeHero: false });
+    toastOk(`${face.label} joined the parts bin.`);
   },
 
   /**

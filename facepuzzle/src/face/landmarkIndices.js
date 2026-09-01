@@ -43,8 +43,6 @@ export const MP_FOREHEAD = [10, 338, 297, 332, 284, 251, 21, 54, 103, 67, 109, 1
 
 /** Single landmarks worth naming. */
 export const MP_NOSE_TIP     = 1;
-export const MP_CHIN_BOTTOM  = 152;
-export const MP_FOREHEAD_TOP = 10;
 export const MP_MOUTH_CENTER = 13;
 
 /** Pull a group out of the flat landmark array, scaled into pixel space. */
